@@ -32,13 +32,26 @@ const japaCount = require('./routes/japaCountRoutes');
 const PORT = process.env.PORT || 4000;
 
 
+// --- CORRECTED CORS CONFIGURATION ---
 
-app.use(cors(
-  {
-  origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
-  credentials: true,
-}
-));
+// 1. Define the list of websites that are allowed to make requests to your backend.
+const allowedOrigins = [
+    'http://localhost:3000',      // Your local development frontend
+    'http://34.228.62.139'        // Your production frontend - REPLACE WITH YOUR EC2 PUBLIC IP
+];
+
+// 2. Configure the CORS middleware
+app.use(cors({
+    origin: function(origin, callback){
+        // Check if the incoming request's origin is in our allowed list
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
+        }
+    },
+    credentials: true
+}));
 
 
 
