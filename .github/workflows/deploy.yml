@@ -1,0 +1,85 @@
+# Filename: .github/workflows/deploy.yml
+
+name: Deploy MERN Gita Project to AWS EC2
+
+# This workflow runs automatically whenever you push code to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    # The workflow will run on a fresh virtual machine provided by GitHub
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checks out your repository code so the workflow can access it
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Logs into Docker Hub using the secrets you provided
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          # --- THIS LINE IS NOW CORRECTED ---
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 3: Builds the backend Docker image and pushes it to your Docker Hub account
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./server
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gita-backend:latest
+
+      # Step 4: Builds the frontend Docker image and pushes it to your Docker Hub account
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./client
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gita-frontend:latest
+
+      # Step 5: Securely connects to your AWS EC2 server and deploys the application
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Create a project directory on the server if it doesn't exist
+            mkdir -p ~/gita-project
+            cd ~/gita-project
+
+            # Create the docker-compose.yml file on the server using your GitHub secrets
+            cat << EOF > docker-compose.yml
+            version: '3.8'
+            services:
+              backend:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/gita-backend:latest
+                container_name: gita-backend
+                restart: always
+                environment:
+                  - MONGO_URI=${{ secrets.MONGO_URI }}
+                  - PORT=5000
+                ports:
+                  - "5000:5000"
+
+              frontend:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/gita-frontend:latest
+                container_name: gita-frontend
+                restart: always
+                ports:
+                  - "80:80"
+                depends_on:
+                  - backend
+            EOF
+            
+            # Pull the latest images from Docker Hub that were just built
+            docker-compose pull
+            
+            # Stop any old running containers and start the new ones
+            docker-compose up -d
