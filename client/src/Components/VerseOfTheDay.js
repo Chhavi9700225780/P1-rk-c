@@ -22,7 +22,7 @@ const VerseOfTheDay = ({ id, desc, chapter, verse }) => {
             </div>
             <div className="description text-center md:text-left">
               <>
-                { desc.length !==0 ? desc.map((item) => {
+                { desc && desc.length !==0 ? desc.map((item) => {
                   return DefaultLanguage === "hindi" &&
                     item.language === "hindi" && item.author_name === "Swami Tejomayananda" ? (
                    
