@@ -77,7 +77,7 @@ const Chapters = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <AnimatePresence>
-                  {chapters.slice(0, visibleCount).map((item, index) => {
+                  {Array.isArray(chapters) && chapters.slice(0, visibleCount).map((item, index) => {
                     return (
                       <motion.div
                         key={item.id}
