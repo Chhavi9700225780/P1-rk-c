@@ -1,0 +1,394 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  /* Ripple Ring Animation */
+  @keyframes ripple-ring {
+    0% {
+      width: 180px;
+      height: 180px;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.4;
+    }
+    100% {
+      width: 600px;
+      height: 600px;
+      opacity: 0;
+    }
+  }
+
+  .ripple-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border: 3px solid rgba(251, 146, 60, 0.6);
+    border-radius: 50%;
+    animation: ripple-ring 6s ease-out infinite;
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.4),
+                inset 0 0 20px rgba(251, 146, 60, 0.2);
+  }
+
+  /* Light Orb Animation */
+  @keyframes light-orb {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(-100px) scale(1.5);
+      opacity: 0.6;
+    }
+    90% {
+      opacity: 0;
+    }
+  }
+
+  .light-orb {
+    width: var(--size);
+    height: var(--size);
+    background: radial-gradient(circle, rgba(251, 146, 60, 0.8) 0%, rgba(251, 146, 60, 0) 70%);
+    border-radius: 50%;
+    animation: light-orb var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+    filter: blur(2px);
+  }
+
+  /* Particle Burst Animation */
+  @keyframes particle-burst {
+    0% {
+      transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
+      opacity: 0;
+      scale: 1;
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance));
+      opacity: 0;
+      scale: 0.3;
+    }
+  }
+
+  .particle-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(251, 146, 60, 1) 0%, rgba(251, 146, 60, 0.4) 100%);
+    border-radius: 50%;
+    animation: particle-burst 5s ease-out infinite;
+    animation-delay: var(--delay);
+    box-shadow: 0 0 10px rgba(251, 146, 60, 0.8);
+  }
+
+
+  /* Shimmer Effect */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(200%) rotate(45deg);
+    }
+  }
+
+  .shimmer {
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Ping Slow */
+  @keyframes ping-slow {
+    75%, 100% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+  }
+
+  .animate-ping-slow {
+    animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* OM Float */
+  @keyframes om-float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0.1;
+    }
+    50% {
+      transform: translateY(-30px) rotate(180deg);
+      opacity: 0.2;
+    }
+  }
+
+  .om-float {
+    animation: om-float 8s ease-in-out infinite;
+  }
+
+  /* Particle Float */
+  @keyframes particle-float {
+    0%, 100% {
+      transform: translate(0, 0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(
+        calc(100vw * (var(--tx, 0.5) - 0.5)),
+        calc(100vh * (var(--ty, 0.5) - 0.5))
+      );
+      opacity: 0;
+    }
+  }
+
+  .particle-float {
+    --tx: var(--particle-tx, 0.5);
+    --ty: var(--particle-ty, 0.5);
+    animation: particle-float 15s ease-in-out infinite;
+  }
+
+  /* Fade In */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.8s ease-out;
+  }
+
+  /* Bounce In */
+  @keyframes bounce-in {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.5);
+    }
+    50% {
+      transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.5s ease-out;
+  }
+
+  /* Gradient Animation for Text */
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 5s ease infinite;
+  }
+
+  /* Enhanced Glow Effect */
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(251, 146, 60, 0.4),
+                  0 0 40px rgba(251, 146, 60, 0.2),
+                  0 0 60px rgba(251, 146, 60, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(251, 146, 60, 0.6),
+                  0 0 80px rgba(251, 146, 60, 0.4),
+                  0 0 120px rgba(251, 146, 60, 0.2);
+    }
+  }
+
+  .glow-pulse-btn {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  /* Energy Spiral Animation */
+  @keyframes energy-spiral {
+    0% {
+      transform: translate(-50%, -50%) rotate(0deg) scale(1);
+      opacity: 0;
+    }
+    25% {
+      opacity: 0.6;
+    }
+    75% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(360deg) scale(1.8);
+      opacity: 0;
+    }
+  }
+
+  .energy-spiral {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    border: 2px dashed rgba(251, 146, 60, 0.5);
+    border-radius: 50%;
+    animation: energy-spiral 8s linear infinite;
+    animation-delay: var(--rotation-delay);
+  }
+
+  .energy-spiral::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, rgba(251, 146, 60, 1) 0%, rgba(251, 146, 60, 0.3) 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(251, 146, 60, 0.8);
+  }
+
+  /* Mandala Sacred Geometry */
+  @keyframes mandala-rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .mandala-rotate {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: mandala-rotate 30s linear infinite;
+  }
+
+  @keyframes mandala-pulse {
+    0%, 100% {
+      r: 15;
+      opacity: 0.3;
+    }
+    50% {
+      r: 18;
+      opacity: 0.6;
+    }
+  }
+
+  .mandala-circle {
+    animation: mandala-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes mandala-line-pulse {
+    0%, 100% {
+      stroke-width: 1;
+      opacity: 0.2;
+    }
+    50% {
+      stroke-width: 2;
+      opacity: 0.5;
+    }
+  }
+
+  .mandala-line {
+    animation: mandala-line-pulse 2s ease-in-out infinite;
+  }
+}
+/* --- STYLES FOR JAPA TOUR --- */
+
+.tour-highlight {
+  pointer-events: none; /* Allows clicks to go through to elements behind the overlay */
+}
+
+.japa-tour-message-box {
+  position: fixed;
+  z-index: 101; /* Above the overlay */
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  width: calc(100% - 2rem);
+  border: 2px solid #fed7aa; /* amber-200 */
+  animation: tour-fade-in 0.5s ease-out forwards;
+}
+
+@keyframes tour-fade-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Specific animations for better positioning */
+.japa-tour-message-box[style*="bottom"] {
+  animation-name: tour-fade-in-bottom;
+}
+@keyframes tour-fade-in-bottom {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.japa-tour-message-box[style*="top"] {
+  animation-name: tour-fade-in-top;
+}
+@keyframes tour-fade-in-top {
+  from { opacity: 0; transform: translate(-50%, -100%) translateY(-20px); }
+  to { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
+}
+
+.tour-next-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background-image: linear-gradient(to right, #f97316, #ef4444); /* orange-500 to rose-500 */
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
+  border: none;
+  cursor: pointer;
+}
+
+.tour-next-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4);
+}

@@ -1,0 +1,25 @@
+# Filename: .gitignore
+
+# Dependencies
+/node_modules
+/client/node_modules
+/server/node_modules
+
+# Production build folders
+/build
+/client/build
+/server/build
+
+# Environment variables file
+/client/.env
+/server/.env
+.env
+*.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Other common files
+.DS_Store

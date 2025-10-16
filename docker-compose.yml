@@ -1,0 +1,29 @@
+# Filename: docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Define the backend service (This section is perfect, no changes)
+  backend:
+    build: ./server
+    container_name: gita-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - PORT=5000
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    restart: always
+
+  # Define the frontend service (Corrected)
+  frontend:
+    build: ./client
+    container_name: gita-frontend
+    ports:
+      - "3000:80"
+    # The 'volumes' section has been removed from here.
+    depends_on:
+      - backend
+    restart: always

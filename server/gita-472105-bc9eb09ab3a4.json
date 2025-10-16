@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gita-472105",
+  "private_key_id": "bc9eb09ab3a4e596c9a92824b7e92765cd2fcfeb",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDCcUh9/4ASEmJs\nGZyXQhxuGYQf9MovHFLzkaEgSTE1Y9dfSlNgE6STCiiEjTl2PueMSw7mgi98LsXR\nxAuECoVZh0j+XGqopKpS1gJuQaKvf87QVUuC/0QCLVOvepT6wWkNsTT04cN48pZf\nagcBb7Qr6DhiEav9GUADQw/8J9bP2fRtOcHNZQptS7gNTzXp/nB9qwZIRcnS2c53\nHaAqrbenLxMvpji26WuwMIChF0EY6TNDf7lj7r46kNntpVMlcF+BpAJ3X7VqS7b3\n9z6XZDlC/hB7jIVjYMzLNX5BYd1NLCmW4hplsjQCInrCcMBIhBEftwdWsOUeDs8b\nY05rAJqJAgMBAAECggEARt29w3oy5aNArtBY04H7VZ9EGdeANtJWY0JA3MEAR8qn\nLKosn/gYw6RwpvrHphKAFpAmkpmBD/wGChEu90VUW5BkaJwrHWLCVuV7xk5yqg7l\nQ+XKWyiI01hMx0hgctG55Y0f1V5Q/UxAxO6iNgJNwrDkl82EBv9EZsvyz/5/Gopc\niJ8yJSxuyDsPmm5PG/kP6bd+JRpD5vInSf5u19RkWBXsbctxJkkbdpu4B4i/Yp0D\nscOp7W3ToMaE2x/86nGXOhbwyRu/k+8gd7BuqR0BqbQsDNv6tX8a1T/qKa6DOK8l\nHH9H7DDrldgEspskjnmeprMqBtF2YYVvT0HRPCPflwKBgQDyqNY4/pkss4QP0dUt\nsSbCbsjCEK0SWZITPWEWq5tFHkh6nWRgWSGyuq8iPnh48ffe7pjW9YTaIzA8SARi\nbBCcdn1aSPiI7L7I4JOWagdZgmuNQ9QvQnkF356Kj6V4fVG9kNB4NUzPAlrz4Axl\nAcbeEA2KjI+hjtnJU9uGR6LWuwKBgQDNIdh2ddfX/ssjCXaIRnlEnmmK6+XPTXGd\nLpUMkn7ch1gEViG5ewVbnuiv0lxtxpiaq2mBcIh1IPv9huGH3KVyezWLmgqhAywn\nnEOnu18xBIfBKSz6Pr7oEm2lfwXT7TXwJrYKQ7jRpIQnhBqYS/6HSJjUXsky7690\nLRHIxV1ZiwKBgQCi9dfHttNPPc92gEhVwx5wfM295k0Ugaqj2RiWjPBdXpT2IzUB\nr1n+GXj72lA1iOoZgMqLsZ5ikDcYhJTNNB2Dtd9A/rhJ3BPT+12iKdp9tiRcXizl\nABMeaqqiCw3o+OAoGlSmJcVLUB2cod4xBxxyjP1LClJ7AOApYHOQnhMxeQKBgHPf\nloLz9kUQrHbSNZ6tEHtucHgE4P/E41TCp3c+mWLBITrx3IMFtvUWQqJu1b88258j\nDKoNg0eGplGEC4nPXbXZW1nMXgyt2hdV8fGhqhfqUzUNqVaCcxxsrHs70XLxH/LU\nKyiJMLFbmTspKEy3QMPygkIUeNrJAfdCLjWXJzAZAoGAMm9SUt+AXFNxIy32Ci+i\nillPH5K6L1tOtw/O1fUelAyYC9w27u18wAADzmFrKuFQ0OJ66H0O+v6xCMZiyG48\nMWmA+bR7XL0cido/YUiJcZ3Jy0JH5k/Jp9qZkwlqmwczgDzKmeYZrhYGN75pBU5J\njK6wVzRn5kML/a89Suw9j2M=\n-----END PRIVATE KEY-----\n",
+  "client_email": "gita-ingest-sa@gita-472105.iam.gserviceaccount.com",
+  "client_id": "117752657507790441553",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gita-ingest-sa%40gita-472105.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
