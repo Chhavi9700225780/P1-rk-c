@@ -66,6 +66,7 @@ jobs:
                   - MONGO_URI=${{ secrets.MONGO_URI }}
                   - PORT=5000
                   - RAPID_API_KEY=${{ secrets.RAPID_API_KEY }}
+                  - SMTP_MAIL=${{ secrets.SMTP_MAIL }}
                   - SMTP_EMAIL=${{ secrets.SMTP_EMAIL }}
                   - PASSWORD=${{ secrets.PASSWORD }}
                   - JWT_SECRET=${{ secrets.JWT_SECRET }}
