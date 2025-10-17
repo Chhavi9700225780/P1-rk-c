@@ -2,9 +2,8 @@ import React from "react";
 import styled from "styled-components";
 import { useGlobalContext } from "../Context/Context";
 import VerseOfTheDay from "./VerseOfTheDay";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-// import { Link } from "react-scroll"; // keep if you still use react-scroll elsewhere
-import { Button } from "../Styles/Button";
+import {  useNavigate } from "react-router-dom";
+
 import { motion, useReducedMotion } from "framer-motion";
 import { fadeUp, staggerContainer } from "../utils/animations";
 

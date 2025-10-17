@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ExternalLink, Sparkles, Loader2, AlertCircle, MessageSquare } from "lucide-react";
-import styled from "styled-components";
+import {  Sparkles,  MessageSquare } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 // ✨ We will style the main div directly, so the Wrapper component is no longer needed.
