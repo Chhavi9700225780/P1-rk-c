@@ -14,6 +14,16 @@ services:
     environment:
       - MONGO_URI=mongodb+srv://gitauser:7PHYxxPPBNwG76Lr@cluster0.59tpxfd.mongodb.net/Radhav?retryWrites=true&w=majority&appName=Cluster0
       - PORT=5000
+      - RAPID_API_KEY=${{ secrets.RAPID_API_KEY }}
+      - SMTP_MAIL=${{ secrets.SMTP_MAIL }}
+      - PASSWORD=${{ secrets.PASSWORD }}
+      - JWT_SECRET=${{ secrets.JWT_SECRET }}
+      - JWT_EXPIRES_IN=7d
+      - OTP_TTL_MINUTES=10
+      - OTP_LENGTH=6
+      - OTP_ATTEMPTS=5
+      - DEV_SHOW_OTP=false # Set to false for production
+      - FRONTEND_ORIGIN=http://${{ secrets.EC2_HOST }}
     volumes:
       - ./server:/app
       - /app/node_modules
