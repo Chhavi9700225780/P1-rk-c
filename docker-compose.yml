@@ -15,7 +15,7 @@ services:
       - MONGO_URI=mongodb+srv://gitauser:7PHYxxPPBNwG76Lr@cluster0.59tpxfd.mongodb.net/Radhav?retryWrites=true&w=majority&appName=Cluster0
       - PORT=5000
       - RAPID_API_KEY=4afeb2771dmshf77197c7bd5e9f6p169e5cjsn172f5adc88e1
-      - SMTP_EMAIL=c21317792@gmail.com
+      - SMPT_EMAIL=c21317792@gmail.com
       - PASSWORD=tsntdqltkuhasjif
       - JWT_SECRET=verysecret_change_me
       - JWT_EXPIRES_IN=7d
