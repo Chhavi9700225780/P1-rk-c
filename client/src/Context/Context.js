@@ -9,7 +9,9 @@ const AppContext = React.createContext();
 //const API = 'https://gita2.onrender.com';
 // This line will use the production URL when the app is built,
 // and fall back to the localhost URL for local development.
-const API = process.env.REACT_APP_API_URL;
+
+const API = "http://54.160.180.195:5000";
+
 // Define the initial state of the application
 const initialState = {
     DefaultLanguage: "english",

@@ -1,5 +1,5 @@
 import axios from "axios";
 
-axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+axios.defaults.baseURL = "http://54.160.180.195:5000";
 axios.defaults.withCredentials = true; // important to send/receive cookies
 export default axios;
