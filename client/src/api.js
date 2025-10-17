@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:"http://54.160.180.195:5000" ,
+  baseURL: process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL ,
   withCredentials: true,
   timeout: 15000,
 });

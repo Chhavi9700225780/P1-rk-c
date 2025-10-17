@@ -9,6 +9,8 @@ services:
     container_name: gita-backend
     ports:
       - "5000:5000"
+    env_file:
+      - ./server/.env 
     environment:
       - MONGO_URI=mongodb+srv://gitauser:7PHYxxPPBNwG76Lr@cluster0.59tpxfd.mongodb.net/Radhav?retryWrites=true&w=majority&appName=Cluster0
       - PORT=5000
