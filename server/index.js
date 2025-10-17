@@ -37,7 +37,7 @@ const PORT = process.env.PORT || 4000;
 // 1. Define the list of websites that are allowed to make requests to your backend.
 const allowedOrigins = [
     'http://localhost:3000',      // Your local development frontend
-    'http://34.228.62.139'        // Your production frontend - REPLACE WITH YOUR EC2 PUBLIC IP
+    'http://54.160.180.195'        // Your production frontend - REPLACE WITH YOUR EC2 PUBLIC IP
 ];
 
 // 2. Configure the CORS middleware
