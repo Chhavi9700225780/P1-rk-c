@@ -1,8 +1,5 @@
-# Filename: .github/workflows/deploy.yml
-
 name: Deploy MERN Gita Project to AWS EC2
 
-# This workflow runs automatically whenever you push code to the 'main' branch
 on:
   push:
     branches:
@@ -10,23 +7,21 @@ on:
 
 jobs:
   build-and-deploy:
-    # The workflow will run on a fresh virtual machine provided by GitHub
     runs-on: ubuntu-latest
-    
+
     steps:
-      # Step 1: Checks out your repository code so the workflow can access it
+      # Step 1: Checkout Code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Logs into Docker Hub using the secrets you provided
+      # Step 2: Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          # --- THIS LINE IS NOW CORRECTED ---
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 3: Builds the backend Docker image and pushes it to your Docker Hub account
+      # Step 3: Build and Push Backend Image
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v4
         with:
@@ -34,7 +29,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/gita-backend:latest
 
-      # Step 4: Builds the frontend Docker image and pushes it to your Docker Hub account
+      # Step 4: Build and Push Frontend Image
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v4
         with:
@@ -42,55 +37,77 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/gita-frontend:latest
 
-      # Step 5: Securely connects to your AWS EC2 server and deploys the application
+      # Step 5: Deploy to EC2
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create a project directory on the server if it doesn't exist
+            set -euo pipefail
+
+            # Fail early if critical secrets are missing
+            if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ] || [ -z "${{ secrets.MONGO_URI }}" ] || \
+               [ -z "${{ secrets.SMTP_MAIL }}" ] || [ -z "${{ secrets.SMTP_EMAIL }}" ] || \
+               [ -z "${{ secrets.SMTP_PASS }}" ]; then
+              echo "ERROR: Missing required GitHub Secrets. Aborting deploy."
+              exit 1
+            fi
+
             mkdir -p ~/gita-project
             cd ~/gita-project
 
-            # Create the docker-compose.yml file on the server using your GitHub secrets
-            cat << EOF > docker-compose.yml
-            version: '3.8'
-            services:
-              backend:
-                image: ${{ secrets.DOCKERHUB_USERNAME }}/gita-backend:latest
-                container_name: gita-backend
-                restart: always
-                environment:
-                  - MONGO_URI=${{ secrets.MONGO_URI }}
-                  - PORT=5000
-                  - RAPID_API_KEY=${{ secrets.RAPID_API_KEY }}
-                  - SMTP_MAIL=${{ secrets.SMTP_MAIL }}
-                  - SMTP_EMAIL=${{ secrets.SMTP_EMAIL }}
-                  - PASSWORD=${{ secrets.PASSWORD }}
-                  - JWT_SECRET=${{ secrets.JWT_SECRET }}
-                  - JWT_EXPIRES_IN=7d
-                  - OTP_TTL_MINUTES=10
-                  - OTP_LENGTH=6
-                  - OTP_ATTEMPTS=5
-                  - DEV_SHOW_OTP=false
-                  - FRONTEND_ORIGIN=http://${{ secrets.EC2_HOST }}
-                ports:
-                  - "5000:5000"
+            # Write .env file on server
+            cat > .env <<'DOT_ENV_EOF'
+MONGO_URI=${{ secrets.MONGO_URI }}
+PORT=5000
+RAPID_API_KEY=${{ secrets.RAPID_API_KEY }}
+SMTP_MAIL=${{ secrets.SMTP_MAIL }}
+SMTP_EMAIL=${{ secrets.SMTP_EMAIL }}
+SMTP_USER=${{ secrets.SMTP_USER }}
+SMTP_PASS=${{ secrets.SMTP_PASS }}
+PASSWORD=${{ secrets.PASSWORD }}
+JWT_SECRET=${{ secrets.JWT_SECRET }}
+JWT_EXPIRES_IN=7d
+OTP_TTL_MINUTES=10
+OTP_LENGTH=6
+OTP_ATTEMPTS=5
+DEV_SHOW_OTP=false
+FRONTEND_ORIGIN=http://${{ secrets.EC2_HOST }}
+DOT_ENV_EOF
 
-              frontend:
-                image: ${{ secrets.DOCKERHUB_USERNAME }}/gita-frontend:latest
-                container_name: gita-frontend
-                restart: always
-                ports:
-                  - "80:80"
-                depends_on:
-                  - backend
-            EOF
-            
-            # Pull the latest images from Docker Hub that were just built
-            docker-compose pull
-            
-            # Stop any old running containers and start the new ones
-            docker-compose up -d
+            # Create docker-compose.yml that uses the .env
+            cat > docker-compose.yml <<'DC_EOF'
+version: '3.8'
+services:
+  backend:
+    image: ${DOCKERHUB_USERNAME}/gita-backend:latest
+    container_name: gita-backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/gita-frontend:latest
+    container_name: gita-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+DC_EOF
+
+            # Export username for heredoc expansion
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+
+            # Pull and restart containers
+            if docker compose version >/dev/null 2>&1; then
+              docker compose pull
+              docker compose up -d --force-recreate
+            else
+              docker-compose pull
+              docker-compose up -d --force-recreate
+            fi
