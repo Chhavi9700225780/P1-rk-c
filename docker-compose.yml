@@ -23,7 +23,7 @@ services:
       - OTP_LENGTH=6
       - OTP_ATTEMPTS=5
       - DEV_SHOW_OTP=false # Set to false for production
-      - FRONTEND_ORIGIN=http://${{ secrets.EC2_HOST }}
+      
     volumes:
       - ./server:/app
       - /app/node_modules
