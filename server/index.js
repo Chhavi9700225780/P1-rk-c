@@ -36,9 +36,10 @@ const PORT = process.env.PORT || 4000;
 
 // 1. Define the list of websites that are allowed to make requests to your backend.
 const allowedOrigins = [
+    'https://p1-rk-2.netlify.app/',
     'http://localhost:3000',      // Your local development frontend
-    'http://98.88.27.72',// Your production frontend - REPLACE WITH YOUR EC2 PUBLIC IP
-    'https://p1-rk-2.netlify.app/'
+    'http://98.88.27.72'// Your production frontend - REPLACE WITH YOUR EC2 PUBLIC IP
+    
 ];
 
 // 2. Configure the CORS middleware
