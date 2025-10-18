@@ -93,6 +93,14 @@ The infrastructure includes a properly configured **Security Group** to manage t
 ---
 <img width="1887" height="773" alt="image" src="https://github.com/user-attachments/assets/5bb440b4-f15e-4737-b4ab-f151f640b75b" />
 
+<img width="743" height="381" alt="image" src="https://github.com/user-attachments/assets/305a0509-e136-410d-bdbd-0a2654a38a69" />
+
+<img width="1915" height="858" alt="image" src="https://github.com/user-attachments/assets/60a413f1-e3a1-420e-b6ce-9684b0daf4d2" />
+
+<img width="1918" height="847" alt="image" src="https://github.com/user-attachments/assets/e572a9a8-aec0-4210-939a-c6a3d0ae9c21" />
+
+
+
 ---
 
 ## 🔧 How to Run Locally
