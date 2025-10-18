@@ -243,6 +243,8 @@ if (process.env.NODE_ENV === "production") {
       .catch(err => console.error("Self-ping failed:", err.message));
   }, 4 * 60 * 1000); // every 4 minutes
 }
+// server (Express example)
+app.get("/health", (req, res) => res.status(200).json({ ok: true, ts: Date.now() }));
 
 // Start the Express server and listen on port 4000
 //app.listen(4000, () => {
