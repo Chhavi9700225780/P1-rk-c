@@ -78,6 +78,9 @@ This project is more than just an application; it's a demonstration of a **compl
 ### ✅ Successful Pipeline Execution
 
 <img width="1125" height="651" alt="final" src="https://github.com/user-attachments/assets/d0c727c1-9f63-48ae-a57c-a6be9544d0d5" />
+---
+<img width="1892" height="958" alt="image" src="https://github.com/user-attachments/assets/dacb7a66-18aa-4688-8a94-c633e6860463" />
+
 
 ---
 
