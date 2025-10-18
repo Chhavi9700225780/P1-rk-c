@@ -235,6 +235,15 @@ app.get("/", (req, res) => {
   res.send("hello world");
 });
 
+if (process.env.NODE_ENV === "production") {
+  const URL = "https://p1-rk-c2.onrender.com"; 
+  setInterval(() => {
+    axios.get(URL)
+      .then(() => console.log("Self-ping success"))
+      .catch(err => console.error("Self-ping failed:", err.message));
+  }, 4 * 60 * 1000); // every 4 minutes
+}
+
 // Start the Express server and listen on port 4000
 //app.listen(4000, () => {
 //  console.log(`server is running at port 4000`);
