@@ -20,7 +20,7 @@ async function requestWithRetry(config, retries = 3, delayMs = 2000) {
   }
 }
 
-export { api, requestWithRetry  };
+export { api, requestWithRetry };
 export default api;
 
 
