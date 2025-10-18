@@ -7,7 +7,7 @@ import { useGlobalContext } from "../Context/Context";
 import { motion, useReducedMotion } from "framer-motion";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
-const API = "https://gita2.onrender.com";
+const API = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL;
 
 const Contact = () => {
   const { isdarkMode } = useGlobalContext();
