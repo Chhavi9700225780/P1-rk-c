@@ -38,7 +38,7 @@ const PORT = process.env.PORT || 4000;
 const allowedOrigins = [
      'https://p1-rk-2.netlify.app',  
     'http://localhost:3000',
-    'http://98.88.27.72' 
+    'http://18.208.218.198' 
     
 ];
 
