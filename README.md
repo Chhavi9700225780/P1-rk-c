@@ -1,4 +1,3 @@
-Here’s your entire project description perfectly converted into **Markdown** format 👇
 
 ---
 
@@ -46,6 +45,12 @@ This application is packed with features designed for a rich, interactive, and p
 
 ---
 
+## 🎥 Demo Video
+
+[![Watch the Demo Video](https://img.youtube.com/vi/g28VDtVD_XI/0.jpg)](https://www.youtube.com/watch?v=g28VDtVD_XI)
+
+
+
 ## 🛠️ Tech Stack & Architecture
 
 This project is built with a **modern MERN stack architecture**, containerized with **Docker**, and deployed on **AWS**.
@@ -77,7 +82,8 @@ This project is more than just an application; it's a demonstration of a **compl
 
 ### ✅ Successful Pipeline Execution
 
-<img width="1125" height="651" alt="final" src="https://github.com/user-attachments/assets/d0c727c1-9f63-48ae-a57c-a6be9544d0d5" />
+<img width="1145" height="1088" alt="diagram-export-18-10-2025-14_06_20" src="https://github.com/user-attachments/assets/5be9a23a-51da-4d8b-a3c8-9db8830e683c" />
+
 ---
 <img width="1892" height="958" alt="image" src="https://github.com/user-attachments/assets/dacb7a66-18aa-4688-8a94-c633e6860463" />
 
@@ -90,16 +96,21 @@ The application is hosted on an **AWS EC2 instance**.
 The infrastructure includes a properly configured **Security Group** to manage traffic for HTTP, the backend API, and secure SSH access.
 
 <img width="1917" height="892" alt="image" src="https://github.com/user-attachments/assets/2e0797d6-006f-4076-bc29-b4a2e7bcec22" />
+
 ---
+
 <img width="1887" height="773" alt="image" src="https://github.com/user-attachments/assets/5bb440b4-f15e-4737-b4ab-f151f640b75b" />
+
+
+---
+
+## Monitoring Using AWS Cloudwatch
 
 <img width="743" height="381" alt="image" src="https://github.com/user-attachments/assets/305a0509-e136-410d-bdbd-0a2654a38a69" />
 
 <img width="1915" height="858" alt="image" src="https://github.com/user-attachments/assets/60a413f1-e3a1-420e-b6ce-9684b0daf4d2" />
 
 <img width="1918" height="847" alt="image" src="https://github.com/user-attachments/assets/e572a9a8-aec0-4210-939a-c6a3d0ae9c21" />
-
-
 
 ---
 
