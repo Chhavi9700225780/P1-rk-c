@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 
-export default function GitaChatWidgetQuick({ src = "https://bhagavadgita.io/gitagpt" }) {
+export default function GitaChatWidgetQuick({ src = "https://chhavi9700225780-my-gg-app-0lievk.streamlit.app/" }) {
   const openInNewTab = () => {
     window.open(src, "_blank", "noopener,noreferrer");
   };

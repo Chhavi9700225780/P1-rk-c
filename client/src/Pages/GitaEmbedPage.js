@@ -98,7 +98,7 @@ const ChakraLogo = () => (
 );
 
 
-export default function GitaEmbedPage({ src = "https://bhagavadgita.io/gitagpt" }) {
+export default function GitaEmbedPage({ src = "https://chhavi9700225780-my-gg-app-0lievk.streamlit.app/?embed=true" }) {
   const [loaded, setLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blocked, setBlocked] = useState(false);

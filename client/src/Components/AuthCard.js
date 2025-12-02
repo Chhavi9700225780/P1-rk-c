@@ -530,7 +530,7 @@ export default function AuthCard({ onVerified }) {
             )*/}
 
             <Small style={{ marginTop: 8 }}>
-              Didn’t get it? Check spam or click Resend (available after a short cooldown).
+              Didn’t get it? Check spam or click Resend .
             </Small>
           </>
         )}

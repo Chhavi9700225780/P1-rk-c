@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import AuthModal from "../Components/AuthModal";
+
 import { toast } from "react-toastify";
 
 const AuthContext = createContext();
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
       }}
     >
       {children}
-      <AuthModal open={modalOpen} onClose={closeAuthModal} onVerified={handleVerified} />
+     
     </AuthContext.Provider>
   );
 }

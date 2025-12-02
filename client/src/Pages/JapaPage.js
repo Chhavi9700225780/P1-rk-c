@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import JapaTour from '../Components/JapaTour';
 // Assuming this is your Auth context
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from "../api";
+
 import './JapaPage.css';
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, count }) => {
@@ -47,7 +48,7 @@ function JapaPage() {
     // On component mount, check if the tour has been seen before
     useEffect(() => {
         let hasSeenTour = localStorage.getItem('hasSeenJapaTour');
-        hasSeenTour=false;
+        
         if (!hasSeenTour) {
             setIsTourOpen(true);
         }
@@ -99,8 +100,8 @@ function JapaPage() {
 
         setIsSaving(true);
         try {
-            const res = await axios.put(
-                '/japaCount/update-japa', // Your backend route
+            const res = await api.put(
+                'japaCount/update-japa', // Your backend route
                 { count: count },
                 { withCredentials: true }
             );

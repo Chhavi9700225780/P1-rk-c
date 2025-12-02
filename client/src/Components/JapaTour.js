@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ArrowRight, Check, Sparkles, Heart } from 'lucide-react';
+import { ArrowRight, Check,  Heart } from 'lucide-react';
 import styled, { keyframes } from 'styled-components';
 
 const guideImage = '/images/rk2.png';

@@ -2,13 +2,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from "react-router-dom";
-import './index.css';
+import './index.css'; 
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AppProvider } from './Context/Context';
 import { AuthProvider } from "./Context/AuthContext";
-// replace `import axios from "axios";` with
-import axios from "./axios"; // path to your axios.js
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

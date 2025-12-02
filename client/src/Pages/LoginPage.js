@@ -26,14 +26,7 @@ const Column = styled.div`
   align-items: center;
 `;
 
-const LogoWrap = styled.div`
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  width: 100%;
-`;
+
 
 const FooterSmall = styled.div`
   margin-top: 18px;

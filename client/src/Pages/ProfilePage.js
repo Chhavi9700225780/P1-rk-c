@@ -11,7 +11,6 @@ import {
   Trash2,
   Repeat,
   RefreshCw,
-  User,
   CreditCard as Edit3,
   LogOut,
   BarChart3,
