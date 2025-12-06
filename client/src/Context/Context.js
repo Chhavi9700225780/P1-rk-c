@@ -7,7 +7,7 @@ const AppContext = React.createContext();
 
 // Define the API URL
 //const API =  'http://localhost:5000';
-const API =   process.env.REACT_APP_RENDER_URL || process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL  ;
+const API =   process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL  ;
 // Define the initial state of the application
 const initialState = {
   DefaultLanguage: "english",
