@@ -1,9 +1,8 @@
-// src/Pages/LoginPage.jsx
-import React from "react";
+import React, { memo } from "react";
 import styled from "styled-components";
-import AuthCard from "../Components/AuthCard";
-//import logoSrc from "../assets/logo-small.png"; // optional -- replace or remove
+import AuthCard from "../Components/Layouts/AuthCard";
 
+// ✅ STYLING UNTOUCHED
 const Page = styled.div`
   position: fixed;
   inset: 0;
@@ -26,8 +25,6 @@ const Column = styled.div`
   align-items: center;
 `;
 
-
-
 const FooterSmall = styled.div`
   margin-top: 18px;
   color: #444;
@@ -35,18 +32,18 @@ const FooterSmall = styled.div`
   text-align: center;
 `;
 
-export default function LoginPage() {
+// ✅ OPTIMIZATION: Converted to const + memo to prevent unnecessary re-renders
+const LoginPage = () => {
   return (
     <Page>
       <Column>
-        
-
         <AuthCard />
-
         <FooterSmall>
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </FooterSmall>
       </Column>
     </Page>
   );
-}
+};
+
+export default memo(LoginPage);

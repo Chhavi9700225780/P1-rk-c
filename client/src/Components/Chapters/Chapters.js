@@ -1,62 +1,101 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGlobalContext } from "../Context/Context";
+import { useGlobalContext } from "../../Context/Context";
 import ChapterBox from "./ChapterBox";
-import Loading from "./Loading";
+import Loading from "../Common/Loading";
 
 const PER_PAGE = 6;
 
+// --- OPTIMIZATION: Move variants outside to prevent re-creation on render ---
+const titleVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const gridVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.5, delay: 0.2 }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20, 
+    scale: 0.95,
+    transition: { duration: 0.2 } 
+  }
+};
+
+const btnVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.9 },
+  hover: { scale: 1.02, y: -1 },
+  tap: { scale: 0.98 }
+};
+
 const Chapters = () => {
-  const [chapters, setChapters] = useState([]);
   const [visibleCount, setVisibleCount] = useState(PER_PAGE);
 
+  // OPTIMIZATION: Use context directly. No need for useEffect/useState duplication.
   const { chapter, isChapterLoading, DefaultLanguage } = useGlobalContext();
+  
+  // Fallback to empty array to prevent crashes
+  const safeChapters = chapter || [];
 
-  useEffect(() => {
-    setChapters(chapter || []);
-    // reset visible count if chapters change (optional)
-    setVisibleCount(PER_PAGE);
-  }, [chapter]);
-
-  // show more: increase visibleCount by PER_PAGE (max chapters.length)
   const showMore = () => {
     const old = visibleCount;
-    const next = Math.min(old + PER_PAGE, chapters.length);
+    const next = Math.min(old + PER_PAGE, safeChapters.length);
     setVisibleCount(next);
 
-    // scroll to the first newly revealed item after a short delay so React renders it
+    // Scroll logic
     setTimeout(() => {
       const items = document.querySelectorAll(".chapter-list > *");
-      const el = items && items[old]; // first newly revealed element (0-indexed)
+      const el = items && items[old]; 
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
   };
 
-  // show less: collapse back to initial PER_PAGE and scroll top of chapters
   const showLess = () => {
     setVisibleCount(PER_PAGE);
     const el = document.getElementById("chapters");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const allVisible = visibleCount >= chapters.length;
+  const allVisible = visibleCount >= safeChapters.length;
 
   return (
     <Wrapper className="relative chapters" id="chapters">
       <div className="chapter-container m-auto">
         <div className="wrapper flex flex-col justify-center">
-          {/* title */}
+          
+          {/* Title */}
           <motion.div 
             className="title mb-10 text-center"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            variants={titleVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
           >
             <h1>Chapters</h1>
           </motion.div>
 
-          {/* chapters */}
+          {/* Content */}
           {isChapterLoading ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -72,43 +111,38 @@ const Chapters = () => {
                 className="grid gap-3 md:grid-cols-2 chapter-list" 
                 aria-live="polite"
                 layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                variants={gridVariants}
+                initial="hidden"
+                animate="visible"
               >
                 <AnimatePresence>
-                  {Array.isArray(chapters) && chapters.slice(0, visibleCount).map((item, index) => {
-                    return (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        transition={{ 
-                          duration: 0.4,
-                          delay: index * 0.05,
-                          ease: "easeOut"
-                        }}
-                        layout
-                      >
-                        <ChapterBox
-                          id={item.id}
-                          heading={item.name_transliterated}
-                          meaning={item.name_meaning}
-                          desc={
-                            DefaultLanguage === "english"
-                              ? item.chapter_summary
-                              : item.chapter_summary_hindi
-                          }
-                        />
-                      </motion.div>
-                    );
-                  })}
+                  {safeChapters.slice(0, visibleCount).map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{ delay: index * 0.05 }} // Stagger effect based on index
+                    >
+                      <ChapterBox
+                        id={item.id}
+                        heading={item.name_transliterated}
+                        meaning={item.name_meaning}
+                        desc={
+                          DefaultLanguage === "english"
+                            ? item.chapter_summary
+                            : item.chapter_summary_hindi
+                        }
+                      />
+                    </motion.div>
+                  ))}
                 </AnimatePresence>
               </motion.div>
 
-              {/* control */}
-              {chapters.length > PER_PAGE && (
+              {/* Controls */}
+              {safeChapters.length > PER_PAGE && (
                 <motion.div 
                   className="controls mt-6 flex justify-center"
                   initial={{ opacity: 0, y: 10 }}
@@ -121,14 +155,13 @@ const Chapters = () => {
                         key="show-more"
                         onClick={showMore}
                         className="btn-show-more px-6 py-2 rounded-md font-medium"
-                        aria-expanded={!allVisible}
-                        aria-controls="chapters"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
+                        variants={btnVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        whileHover="hover"
+                        whileTap="tap"
                         transition={{ duration: 0.2 }}
-                        whileHover={{ scale: 1.02, y: -1 }}
-                        whileTap={{ scale: 0.98 }}
                       >
                         Show more
                       </motion.button>
@@ -137,14 +170,13 @@ const Chapters = () => {
                         key="show-less"
                         onClick={showLess}
                         className="btn-show-less px-6 py-2 rounded-md font-medium"
-                        aria-expanded={allVisible}
-                        aria-controls="chapters"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
+                        variants={btnVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        whileHover="hover"
+                        whileTap="tap"
                         transition={{ duration: 0.2 }}
-                        whileHover={{ scale: 1.02, y: -1 }}
-                        whileTap={{ scale: 0.98 }}
                       >
                         Show less
                       </motion.button>
@@ -162,6 +194,7 @@ const Chapters = () => {
 
 export default Chapters;
 
+// ✅ STYLING UNTOUCHED
 const Wrapper = styled.div`
   width: 100vw;
   height: auto;
@@ -173,7 +206,6 @@ const Wrapper = styled.div`
     }
   }
 
-  
   .controls .btn-show-more {
     background: ${({ theme }) => theme.colors.orange};
     color: white;

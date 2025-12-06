@@ -1,31 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { useGlobalContext } from "../Context/Context";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import Shlok from "../Components/Shlok";
 import styled from "styled-components";
-import VerseTable from "../Components/VerseTable";
-import Loading from "../Components/Loading";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useAuth } from "../Context/AuthContext";
-
 import { motion, useReducedMotion } from "framer-motion";
+import api from "../utils/api";
+import { toast } from "react-toastify";
+
+// Context & Components
+import { useGlobalContext } from "../Context/Context";
+import { useAuth } from "../Context/AuthContext";
+import Shlok from "../Components/Chapters/Shlok";
+import VerseTable from "../Components/Chapters/VerseTable";
+import Loading from "../Components/Common/Loading";
 import { fadeUp, staggerContainer } from "../utils/animations";
 
 const ChapterPage = () => {
-  // Extract the "id" parameter from the URL
   const { id } = useParams();
-const location = useLocation();
-const navigate = useNavigate();
-  // Initialize state variables
-  const [showChapter, setShowChapter] = useState({});
-  const [showChapterVerses, setShowChapterVerses] = useState([]);
-
-  // progress map: { verseNumber: true/false }
-  const [progressMap, setProgressMap] = useState({});
-  const [loadingChapterToggle, setLoadingChapterToggle] = useState(false);
-
-  // Extract data from the global context using the useGlobalContext hook
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Use Context Data DIRECTLY (No need for duplicate local state)
   const {
     GetSingleChapter,
     singleChapter,
@@ -36,43 +29,38 @@ const navigate = useNavigate();
     DefaultLanguage,
   } = useGlobalContext();
 
-  const { user, openAuthModal } = useAuth();
+  const { user } = useAuth();
   
-  // reduced motion preference
+  // Local State for User Progress only
+  const [progressMap, setProgressMap] = useState({});
+  const [loadingChapterToggle, setLoadingChapterToggle] = useState(false);
+
+  // Animation Preferences
   const reduceMotion = useReducedMotion();
   const containerVariants = reduceMotion ? { hidden: {}, visible: {} } : staggerContainer;
   const itemVariant = reduceMotion ? { hidden: {}, visible: {} } : fadeUp;
 
-  // Update showChapter state when singleChapter changes
+  // 1. Fetch Data on ID Change
   useEffect(() => {
-    setShowChapter(singleChapter);
-  }, [singleChapter]);
-
-  // Update showChapterVerses state when chapterVerses changes
-  useEffect(() => {
-    setShowChapterVerses(chapterVerses);
-  }, [chapterVerses]);
-
-  // Fetch single chapter details and verses when component mounts or id changes
-  useEffect(() => {
+    window.scrollTo(0, 0); // Ensure top on new chapter
     GetSingleChapter(`${id}`);
     GetAllVerses(`${id}/slok`);
-    // fetch progress after requesting verses (so we know verse numbers)
-    // small delay to allow verses to load if they are lazy — we'll fetch regardless
     fetchChapterProgress();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Fetch per-verse progress for this chapter from backend
-  async function fetchChapterProgress() {
+  // 2. Fetch Progress (Async)
+  const fetchChapterProgress = async () => {
+    if (!user) {
+        setProgressMap({});
+        return;
+    }
     try {
-      const res = await axios.get(`/progress/me/chapter/${id}`, { withCredentials: true });
+      const res = await api.get(`/progress/me/chapter/${id}`, { withCredentials: true });
       if (res.data && res.data.ok) {
         const map = {};
-        // Accept either res.data.verses array or res.data.chapterVerses etc.
         const versesArr = res.data.verses || res.data.chapterVerses || [];
         versesArr.forEach((v) => {
-          // support both { verse, completed } and { verse_number, completed }
           const verseNum = v.verse || v.verse_number || v.verseNumber || v.index;
           if (typeof verseNum !== "undefined") map[Number(verseNum)] = !!v.completed;
         });
@@ -81,28 +69,38 @@ const navigate = useNavigate();
         setProgressMap({});
       }
     } catch (err) {
-      // silent fail — user might be anonymous; clear map
       setProgressMap({});
-      // console.error('fetchChapterProgress', err);
     }
-  }
+  };
 
-  // Toggle whole chapter complete/uncomplete
+  // 3. Handle Scroll to Hash (#verse-15)
+  useEffect(() => {
+    if (!isVersesLoading && location.hash) {
+      const elementId = location.hash.substring(1);
+      const element = document.getElementById(elementId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300); // Increased delay slightly for reliability
+      }
+    }
+  }, [location.hash, isVersesLoading]);
+
+  // 4. Toggle Chapter Completion
   const toggleWholeChapter = async (markComplete = true) => {
     if (!user) {
       toast.info("Please log in to mark chapter progress");
-      navigate("/login")
+      navigate("/login");
       return;
     }
     try {
       setLoadingChapterToggle(true);
-      await axios.post(
+      await api.post(
         "/progress/me/chapter",
         { chapterId: Number(id), completed: !!markComplete },
         { withCredentials: true }
       );
-      // refresh progress map after change
-      await fetchChapterProgress();
+      await fetchChapterProgress(); // Refresh map
       toast.success(markComplete ? "Chapter marked complete" : "Chapter marked incomplete");
     } catch (err) {
       console.error("toggleWholeChapter", err);
@@ -111,146 +109,121 @@ const navigate = useNavigate();
       setLoadingChapterToggle(false);
     }
   };
-// This hook handles scrolling to the verse specified in the URL hash.
-  useEffect(() => {
-    // We only run this after the verses have finished loading.
-    if (!isVersesLoading && location.hash) {
-      // Find the element with the ID that matches the hash (e.g., #verse-42 -> 'verse-42').
-      const elementId = location.hash.substring(1);
-      const element = document.getElementById(elementId);
-
-      if (element) {
-        // If the element is found, scroll to it smoothly.
-        // A small timeout ensures the browser has time to render everything first.
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
-      }
-    }
-  }, [location.hash, isVersesLoading]); // Re-run if the hash changes or when verses load.
-  // ==================== END OF MODIFICATION ====================
 
   return (
-    <>
-      {/* motion.section wraps the page so it can animate children */}
-      <motion.section id="chapter" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }}>
-        <Wrapper id="chapter">
-          <div className="chapter-container px-0 xl:px-20 py-3">
-            <div className="wrapper px-8 md:px-10 xl:px-20">
-              <div className="custom-container flex justify-center">
+    <motion.section 
+      id="chapter" 
+      initial="hidden" 
+      whileInView="visible" 
+      viewport={{ once: true, amount: 0.15 }}
+    >
+      <Wrapper id="chapter">
+        <div className="chapter-container px-0 xl:px-20 py-3">
+          <div className="wrapper px-8 md:px-10 xl:px-20">
+            <div className="custom-container flex justify-center">
 
-                  {/* Render a verse table component (kept outside animated list) */}
-                   
-                               <VerseTable
-                  singleChapter={singleChapter}
-                  id={id}
-                  showChapterVerses={showChapterVerses}
-                  progressMap={progressMap}
-                  onToggleChapterComplete={toggleWholeChapter}
-                />
+              {/* Sidebar: Verse Table */}
+              <VerseTable
+                singleChapter={singleChapter}
+                id={id}
+                // showChapterVerses is now just chapterVerses from context
+                showChapterVerses={chapterVerses} 
+                progressMap={progressMap}
+                onToggleChapterComplete={toggleWholeChapter}
+              />
               
-                
-                <div className="inner-container ml-4 ">
-                  {/* main-section */}
-                  <div className="main-section overflow-hidden flex flex-col">
-                    {isSingleLoading ? (
-                      <Loading />
-                    ) : (
-                      <>
-                        {/* Animated chapter intro */}
-                        <motion.div
-                          className="relative chapter-intro  pt-20 pb-10 flex justify-center flex-col items-center"
-                          variants={itemVariant}
-                        >
-                          {/* Display chapter title based on language */}
-                          <div className="chapter-heading mb-3 flex justify-center flex-col items-center">
-                            <h3 className="font-bold mb-0">
-                              {DefaultLanguage === "hindi" ? (
-                                <>
-                                  <span className="text-2xl">अध्याय {id}{" "}:{" "}</span>
-                                  {showChapter.name}
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-2xl">Chapter {id}{" "}:{" "}</span>
-                                  {showChapter.name_transliterated}
-                                </>
-                              )}
-                            </h3>
-                          </div>
-
-                          {/* Display chapter summary based on language */}
-                          <div className="chapter-summary">
-                            <p>
-                              {Object.keys(showChapter).length !== 0 ? (
-                                DefaultLanguage === "hindi" ? (
-                                  <>{showChapter.chapter_summary_hindi}</>
-                                ) : (
-                                  <>{showChapter.chapter_summary}</>
-                                )
-                              ) : (
-                                ""
-                              )}
-                            </p>
-                          </div>
-                        </motion.div>
-
-                        {/* Verses list with staggered entrance */}
-                        <motion.div className="list-container z-10 " id="list" variants={containerVariants}>
-                          <div className="list-items pb-14">
-                            {!isVersesLoading ? (
+              {/* Main Content Area */}
+              <div className="inner-container ml-4">
+                <div className="main-section overflow-hidden flex flex-col">
+                  {isSingleLoading ? (
+                    <Loading />
+                  ) : (
+                    <>
+                      {/* Chapter Intro */}
+                      <motion.div
+                        className="relative chapter-intro pt-20 pb-10 flex justify-center flex-col items-center"
+                        variants={itemVariant}
+                      >
+                        <div className="chapter-heading mb-3 flex justify-center flex-col items-center">
+                          <h3 className="font-bold mb-0">
+                            {DefaultLanguage === "hindi" ? (
                               <>
-                                {/* Display total verse count */}
-                                <div className="search-item py-5 mb-5 text-center">
-                                  <span className="font-bold text-xl">
-                                    {DefaultLanguage === "hindi" ? (
-                                      <>
-                                        {showChapterVerses.length} {`श्लोक`}
-                                      </>
-                                    ) : (
-                                      <>{showChapterVerses.length} Verses</>
-                                    )}
-                                  </span>
-                                </div>
-
-                                {/* Map and render each verse with animation */}
-                                {showChapterVerses.map((item, index) => (
-                                  <motion.div key={item.id} variants={itemVariant}
-                                   id={`verse-${item.verse_number || item.verse}`} 
-                                  >
-                                    <Shlok
-                                      chapterVerse={item}
-                                      DefaultLanguage={DefaultLanguage}
-                                      isCompleted={!!progressMap[item.verse_number || item.verse]}
-                                      onProgressChange={fetchChapterProgress}
-                                    />
-                                  </motion.div>
-                                ))}
+                                <span className="text-2xl">अध्याय {id}{" "}:{" "}</span>
+                                {singleChapter.name}
                               </>
                             ) : (
-                              <Loading />
+                              <>
+                                <span className="text-2xl">Chapter {id}{" "}:{" "}</span>
+                                {singleChapter.name_transliterated}
+                              </>
                             )}
-                          </div>
-                        </motion.div>
-                         
-                      </>
-                    )}
-                  </div>
-                </div>
+                          </h3>
+                        </div>
 
-               
-                        
+                        <div className="chapter-summary">
+                          <p>
+                            {Object.keys(singleChapter).length !== 0 ? (
+                              DefaultLanguage === "hindi" ? (
+                                <>{singleChapter.chapter_summary_hindi}</>
+                              ) : (
+                                <>{singleChapter.chapter_summary}</>
+                              )
+                            ) : ""}
+                          </p>
+                        </div>
+                      </motion.div>
+
+                      {/* Verses List */}
+                      <motion.div className="list-container z-10" id="list" variants={containerVariants}>
+                        <div className="list-items pb-14">
+                          {!isVersesLoading ? (
+                            <>
+                              <div className="search-item py-5 mb-5 text-center">
+                                <span className="font-bold text-xl">
+                                  {DefaultLanguage === "hindi" ? (
+                                    <>{chapterVerses.length} {`श्लोक`}</>
+                                  ) : (
+                                    <>{chapterVerses.length} Verses</>
+                                  )}
+                                </span>
+                              </div>
+
+                              {chapterVerses.map((item) => (
+                                <motion.div 
+                                  key={item.id} 
+                                  variants={itemVariant}
+                                  id={`verse-${item.verse_number || item.verse}`} 
+                                >
+                                  <Shlok
+                                    chapterVerse={item}
+                                    DefaultLanguage={DefaultLanguage}
+                                    isCompleted={!!progressMap[item.verse_number || item.verse]}
+                                    onProgressChange={fetchChapterProgress}
+                                  />
+                                </motion.div>
+                              ))}
+                            </>
+                          ) : (
+                            <Loading />
+                          )}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </div>
               </div>
+
             </div>
           </div>
-        </Wrapper>
-      </motion.section>
-    </>
+        </div>
+      </Wrapper>
+    </motion.section>
   );
 };
 
 export default ChapterPage;
 
+// ✅ STYLING UNTOUCHED (Copy of your wrapper)
 const Wrapper = styled.div`
   position: relative;
   width: 100vw;
@@ -282,10 +255,9 @@ const Wrapper = styled.div`
        height: 30px;
        width: 100%;
        z-index: 2;
-
     }
     &::after{
-      content: "";
+       content: "";
        position: absolute;
        bottom: 0;
        left: 0;
@@ -309,7 +281,6 @@ const Wrapper = styled.div`
     height: 100vh;
     z-index: 1;
   }
- 
 
   .chapter-intro {
     padding-top: 2em;
@@ -335,24 +306,24 @@ const Wrapper = styled.div`
   .list-container {
     .search-item {
       position: relative;
-     &::before{
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: ${({ theme }) => theme.colors.border.primary};
-      width: 100%;
-      height: 2px;
-     }
-     &:after{
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      background: ${({ theme }) => theme.colors.border.primary};
-      width: 100%;
-      height: 2px;
-     }
+      &::before{
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: ${({ theme }) => theme.colors.border.primary};
+        width: 100%;
+        height: 2px;
+      }
+      &:after{
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background: ${({ theme }) => theme.colors.border.primary};
+        width: 100%;
+        height: 2px;
+      }
     }
   }
   .shapes {
@@ -366,7 +337,6 @@ const Wrapper = styled.div`
       img {
         width: 451px;
         height: 100%;
-        /* opacity: 0.46; */
       }
     }
   }

@@ -1,32 +1,47 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { CgChevronDoubleUp } from "react-icons/cg";
 
 const ScrollToTopButton = () => {
   const [visible, setVisible] = useState(false);
 
-  function scrollToTop() {
+  const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-  }
-  const listenToScroll = useCallback(() => {
-    let heightToHidden = 250;
-    const winScroll =
-      document.body.scrollTop || document.documentElement.scrollTop;
+  };
 
-    if (winScroll > heightToHidden) {
-      setVisible(true);
-    } else {
-      setVisible(false);
-    }
-  }, [setVisible])
-  
   useEffect(() => {
-    window.addEventListener("scroll", listenToScroll);
-    return () => window.removeEventListener("scroll", listenToScroll);
-  }, [listenToScroll]);
+    let ticking = false;
+
+    const toggleVisibility = () => {
+      const scrolled = document.documentElement.scrollTop || document.body.scrollTop;
+      const shouldBeVisible = scrolled > 250;
+
+      // Optimization: Only update state if value changes
+      setVisible((prev) => {
+        if (prev !== shouldBeVisible) {
+          return shouldBeVisible;
+        }
+        return prev;
+      });
+      
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(toggleVisibility);
+        ticking = true;
+      }
+    };
+
+    // Optimization: { passive: true } improves scrolling performance
+    window.addEventListener("scroll", onScroll, { passive: true });
+    
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
@@ -43,6 +58,7 @@ const ScrollToTopButton = () => {
 
 export default ScrollToTopButton;
 
+// ✅ STYLING UNTOUCHED
 const Wrapper = styled.div`
   .top-btn {
     position: fixed;

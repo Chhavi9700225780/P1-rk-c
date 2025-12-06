@@ -1,62 +1,60 @@
-// src/App.js
+import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import HomePage from "./Pages/HomePage";
-import About from "./Pages/About";
-import { GlobalStyle } from "./GlobalStyle/GlobalStyle";
 import { ThemeProvider } from "styled-components";
-import Contact from "./Pages/Contact";
-import VersePage from "./Pages/VersePage";
-import ChapterPage from "./Pages/ChapterPage";
-import Chapters from "./Components/Chapters";
-import ErrorPage from "./Components/ErrorPage";
-import { useGlobalContext } from "./Context/Context";
-import Music from "./Components/Music";
-import ScrollToTopButton from "./Components/ScrollToTopButton";
-import Footer from "./Components/Footer";
-import Preloader from "./Components/Preloader";
-import Header from "./Components/Header";
-import { useCallback, useEffect } from "react";
-import { darkTheme, lightTheme } from "./config/Theme";
-import GitaEmbedPage from "./Pages/GitaEmbedPage";
-
-
-import LoginPage from "./Pages/LoginPage";
-import ProfilePage from "./Pages/ProfilePage";
-
-
-// Toast imports
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import JapaPage from "./Pages/JapaPage";
 
-// Define the main App component
+// Context & Styles
+import { useGlobalContext } from "./Context/Context";
+import { GlobalStyle } from "./GlobalStyle/GlobalStyle";
+import { darkTheme, lightTheme } from "./config/Theme";
+
+// Critical Components (Load immediately)
+import Header from "./Components/Layouts/Header";
+import Footer from "./Components/Layouts/Footer";
+import Preloader from "./Components/Common/Preloader"; // Standard loader
+import ScrollToTopButton from "./Components/Common/ScrollToTopButton";
+import Music from "./Components/Common/Music";
+
+// Lazy Load Pages & Heavy Components
+const HomePage = lazy(() => import("./Pages/HomePage"));
+const About = lazy(() => import("./Pages/About"));
+const Contact = lazy(() => import("./Pages/Contact"));
+const Chapters = lazy(() => import("./Components/Chapters/Chapters"));
+const ChapterPage = lazy(() => import("./Pages/ChapterPage"));
+const VersePage = lazy(() => import("./Pages/VersePage"));
+const GitaEmbedPage = lazy(() => import("./Pages/GitaEmbedPage"));
+const LoginPage = lazy(() => import("./Pages/LoginPage"));
+const ProfilePage = lazy(() => import("./Pages/ProfilePage"));
+const JapaPage = lazy(() => import("./Pages/JapaPage"));
+const ErrorPage = lazy(() => import("./Components/Common/ErrorPage"));
+
 function App() {
-  // Destructure values from the global context
-  // Destructure values from the global context
   const { isLoading, isdarkMode, header, setHeader } = useGlobalContext();
   const location = useLocation();
+  const [ticking, setTicking] = useState(false); // Throttle state
 
-
-
-  // Function to change the header background based on scroll position
+  // Optimized Scroll Handler (Throttled)
   const changeHeaderBackground = useCallback(() => {
-    if (window.scrollY >= 10) {
-      setHeader(true);
-    } else {
-      setHeader(false);
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        if (window.scrollY >= 10) {
+          setHeader(true);
+        } else {
+          setHeader(false);
+        }
+        setTicking(false);
+      });
+      setTicking(true);
     }
-  }, [setHeader]);
+  }, [setHeader, ticking]);
 
   useEffect(() => {
-    // Add scroll event listener to change header background
     window.addEventListener("scroll", changeHeaderBackground);
-    return () => {
-      window.removeEventListener("scroll", changeHeaderBackground);
-    };
+    return () => window.removeEventListener("scroll", changeHeaderBackground);
   }, [changeHeaderBackground]);
 
-  
-// Toast styling that adapts to dark/light theme
+  // Toast Styles
   const toastStyle = {
     borderRadius: 10,
     padding: "12px 14px",
@@ -67,59 +65,53 @@ function App() {
     fontWeight: 600,
   };
 
-  
+  // Helper to determine if we should hide layout elements
+  const isFullscreenPage = ["/login", "/japa"].includes(location.pathname);
+  const isProfileOrEmbed = ["/profile", "/talktokrishna"].includes(location.pathname);
 
   return (
     <ThemeProvider theme={isdarkMode ? darkTheme : lightTheme}>
       <GlobalStyle />
-
-      {/* ✨ FIX 1: This main div is now a flex container for the whole app 
-      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
-
-      */}
 
       <div className="app">
         {isLoading ? (
           <Preloader />
         ) : (
           <>
-            {location.pathname !== "/login" && location.pathname !== "/japa" && (
-              <>
-                <Header header={header} location={location} />
-              </>
+            {/* Header: Hide on Login/Japa */}
+            {!isFullscreenPage && (
+              <Header header={header} location={location} />
             )}
-            {location.pathname !== "/login" && location.pathname !== "/profile" && location.pathname !== "/talktokrishna" && location.pathname !== "/japa" && (
+
+            {/* Global Tools: Music & ScrollToTop (Hide on Login/Profile/Embed/Japa) */}
+            {!isFullscreenPage && !isProfileOrEmbed && (
               <>
                 <Music />
                 <ScrollToTopButton />
               </>
             )}
 
-            {/* ✨ FIX 2: A <main> tag now wraps your Routes. It will grow to fill available space. 
-            style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}
-            */}
-           
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/chapters" element={<Chapters />} />
-                  <Route path="/chapter/:id/" element={<ChapterPage />} />
-                  <Route path="/chapter/:id/slok/:sh" element={<VersePage />} />
-                  <Route
-                    path="/talktokrishna"
-                    element={<GitaEmbedPage />}
-                  />
-                  <Route path="/login" element={<LoginPage />}></Route>
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/japa" element={<JapaPage />} />
-                  <Route path="*" element={<ErrorPage />}></Route>
-                </Routes>
-             
+            {/* Suspense Wrapper handles loading state for all lazy routes */}
+            <Suspense fallback={<Preloader />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/chapters" element={<Chapters />} />
+                <Route path="/chapter/:id/" element={<ChapterPage />} />
+                <Route path="/chapter/:id/slok/:sh" element={<VersePage />} />
+                <Route path="/talktokrishna" element={<GitaEmbedPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/japa" element={<JapaPage />} />
+                <Route path="*" element={<ErrorPage />} />
+              </Routes>
+            </Suspense>
 
-            {location.pathname !== "/login" && location.pathname !== "/profile" && location.pathname !== "/talktokrishna" && location.pathname !== "/japa"&& <Footer />}
+            {/* Footer: Hide on Login/Profile/Embed/Japa */}
+            {!isFullscreenPage && !isProfileOrEmbed && <Footer />}
 
-             <ToastContainer
+            <ToastContainer
               position="top-right"
               autoClose={4000}
               hideProgressBar={false}

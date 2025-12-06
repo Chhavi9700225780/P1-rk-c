@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import styled from "styled-components";
 import { CgClose, CgMenu } from "react-icons/cg";
-import Toggler from "./Toggler";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useGlobalContext } from "../Context/Context";
-import LanguageBtn from "../Styles/LanguageBtn";
-import { Button } from "../Styles/Button";
 
-// 🔑 import auth context
-import { useAuth } from "../Context/AuthContext";
-// ✨ Create a new styled component for the Login button
+// Contexts & Components
+import { useGlobalContext } from "../../Context/Context";
+import { useAuth } from "../../Context/AuthContext";
+import Toggler from "../Common/Toggler";
+import LanguageBtn from "../../Styles/LanguageBtn";
+import { Button } from "../../Styles/Button";
+
+// ✨ Styled Component for Login Button (Untouched)
 const LoginButton = styled(Button)`
   border: 1px solid #f59e0b;
   background: linear-gradient(
@@ -35,17 +36,16 @@ const LoginButton = styled(Button)`
   }
 `;
 
-
 const Navbar = ({ header }) => {
   const [menuIcon, setMenuIcon] = useState(false);
   const { isdarkMode } = useGlobalContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, openAuthModal } = useAuth(); // 👈 get auth state
+  const { user } = useAuth();
 
-  // unified handler: scroll if on home, otherwise navigate to home with state
-  const handleNavClick = (e, targetId) => {
-    e && e.preventDefault();
+  // Unified handler: scroll if on home, otherwise navigate to home with state
+  const handleNavClick = useCallback((e, targetId) => {
+    if (e) e.preventDefault();
     setMenuIcon(false);
 
     if (location.pathname === "/" || location.pathname === "") {
@@ -53,22 +53,28 @@ const Navbar = ({ header }) => {
       if (el) {
         const navOffset =
           parseInt(
-            getComputedStyle(document.documentElement).getPropertyValue(
-              "--nav-height"
-            )
+            getComputedStyle(document.documentElement).getPropertyValue("--nav-height")
           ) || 0;
-        const top =
-          el.getBoundingClientRect().top + window.pageYOffset - navOffset;
+        const top = el.getBoundingClientRect().top + window.pageYOffset - navOffset;
         window.scrollTo({ top, behavior: "smooth" });
         window.history.replaceState(null, "", `#${targetId}`);
       } else {
         window.history.replaceState(null, "", `#${targetId}`);
       }
-      return;
+    } else {
+      navigate("/", { state: { scrollTo: targetId } });
     }
+  }, [location.pathname, navigate]);
 
-    navigate("/", { state: { scrollTo: targetId } });
-  };
+  // Logic for Logo Source
+  const logoSrc = 
+    location.pathname === "/" && !menuIcon
+      ? !isdarkMode && header
+        ? "/images/logo3.png"
+        : "/images/logo2.png"
+      : !isdarkMode
+      ? "/images/logo3.png"
+      : "/images/logo2.png";
 
   return (
     <Wrapper className="w-full">
@@ -87,15 +93,7 @@ const Navbar = ({ header }) => {
           <div className="logo px-3">
             <a href="/#hero" onClick={(e) => handleNavClick(e, "hero")}>
               <img
-                src={
-                  location.pathname === "/" && !menuIcon
-                    ? !isdarkMode && header
-                      ? "/images/logo3.png"
-                      : "/images/logo2.png"
-                    : !isdarkMode
-                    ? "/images/logo3.png"
-                    : "/images/logo2.png"
-                }
+                src={logoSrc}
                 alt="logo"
                 width={100}
                 height={100}
@@ -110,42 +108,20 @@ const Navbar = ({ header }) => {
 
           <div className="navbar-lists flex justify-center items-center">
             <ul>
-              <li>
-                <a
-                  href="/#hero"
-                  onClick={(e) => handleNavClick(e, "hero")}
-                  className="navbar-link "
-                >
-                  Home
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/about"
-                  onClick={(e) => handleNavClick(e, "about")}
-                  className="navbar-link "
-                >
-                  About
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/chapters"
-                  onClick={(e) => handleNavClick(e, "chapters")}
-                  className="navbar-link "
-                >
-                  Chapters
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/contact"
-                  onClick={(e) => handleNavClick(e, "contact")}
-                  className="navbar-link "
-                >
-                  Contact Us
-                </a>
-              </li>
+              {["Home", "About", "Chapters", "Contact"].map((item) => {
+                const targetId = item.toLowerCase() === "home" ? "hero" : item.toLowerCase();
+                return (
+                  <li key={item}>
+                    <a
+                      href={`/#${targetId}`}
+                      onClick={(e) => handleNavClick(e, targetId)}
+                      className="navbar-link "
+                    >
+                      {item}
+                    </a>
+                  </li>
+                );
+              })}
               <li>
                 <NavLink
                   to="/talktokrishna"
@@ -202,18 +178,10 @@ const Navbar = ({ header }) => {
           </div>
 
           <div className="mobile-logo flex justify-center">
-            <a href="/#home" onClick={(e) => handleNavClick(e, "home")}>
+            <a href="/#hero" onClick={(e) => handleNavClick(e, "hero")}>
               <img
                 className=" h-12"
-                src={
-                  location.pathname === "/"
-                    ? !isdarkMode && header
-                      ? "/images/logo3.png"
-                      : "/images/logo2.png"
-                    : !isdarkMode
-                    ? "/images/logo3.png"
-                    : "/images/logo2.png"
-                }
+                src={logoSrc}
                 alt="logo"
               />
             </a>
@@ -243,8 +211,7 @@ const Navbar = ({ header }) => {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Toggler />
                 <LanguageBtn />
-              <LoginButton onClick={() => navigate("/login")}>Sign in</LoginButton>
-          
+                <LoginButton onClick={() => navigate("/login")}>Sign in</LoginButton>
               </div>
             )}
           </div>
@@ -254,6 +221,7 @@ const Navbar = ({ header }) => {
   );
 };
 
+// ✅ STYLING UNTOUCHED
 const Wrapper = styled.nav`
   width: 100%;
   height: 80px;
@@ -512,4 +480,4 @@ const Wrapper = styled.nav`
   }
 `;
 
-export default Navbar;
+export default memo(Navbar);

@@ -1,18 +1,17 @@
-// src/Components/AuthCard.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, memo } from "react";
 import styled from "styled-components";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
-import api from "../api";
+import { useAuth } from "../../Context/AuthContext";
+import api from "../../utils/api";
 
-/* ---------- Styles (unchanged except small error prop) ---------- */
+/* ---------- Styles (unchanged) ---------- */
 const Card = styled.div`
   width: 100%;
   max-width: 360px;
   background: #fff;
   border-radius: 6px;
-  border: 1px solid #D5D9D9; /* <-- Changed from #e9e9e9 */
+  border: 1px solid #D5D9D9;
   box-shadow: 0 6px 14px rgba(16,24,40,0.06);
   padding: 22px 20px;
   box-sizing: border-box;
@@ -42,7 +41,7 @@ const Input = styled.input`
   width:100%;
   padding:12px 14px;
   border-radius:6px;
-  border: ${props => (props.hasError ? "1px solid #ff4d4f" : "1px solid #888C8C")}; /* <-- Changed from #e6e6e6 */
+  border: ${props => (props.hasError ? "1px solid #ff4d4f" : "1px solid #888C8C")};
   font-size:14px;
   box-sizing: border-box;
   outline: none;
@@ -87,14 +86,12 @@ const Small = styled.div`
   text-align:left;
 `;
 
-/* error text */
 const ErrorText = styled.div`
   margin-top: 6px;
   font-size: 13px;
   color: #ff4d4f;
 `;
 
-/* small helper to render spinner */
 const Spinner = ({ size = 16 }) => (
   <svg
     width={size}
@@ -102,30 +99,11 @@ const Spinner = ({ size = 16 }) => (
     viewBox="0 0 50 50"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    style={{
-      animation: "spin 1s linear infinite", // rotate continuously
-    }}
+    style={{ animation: "spin 1s linear infinite" }}
   >
-    <circle
-      cx="25"
-      cy="25"
-      r="20"
-      stroke="#111"
-      strokeOpacity="0.15"
-      strokeWidth="4"
-    />
-    <path
-      d="M45 25a20 20 0 0 0-20-20"
-      stroke="#111"
-      strokeWidth="4"
-      strokeLinecap="round"
-    />
-    <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
+    <circle cx="25" cy="25" r="20" stroke="#111" strokeOpacity="0.15" strokeWidth="4" />
+    <path d="M45 25a20 20 0 0 0-20-20" stroke="#111" strokeWidth="4" strokeLinecap="round" />
+    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
   </svg>
 );
 
@@ -138,16 +116,16 @@ function formatSeconds(sec) {
 }
 
 /* ---------- Component ---------- */
-export default function AuthCard({ onVerified }) {
+const AuthCard = ({ onVerified }) => {
   const { fetchMe } = useAuth();
   const navigate = useNavigate();
 
   // form state
-  const [step, setStep] = useState(0); // 0 = enter name/email, 1 = enter otp
+  const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // field-level client errors (shown under inputs)
+  // errors
   const [emailError, setEmailError] = useState("");
   const [otpError, setOtpError] = useState("");
 
@@ -156,71 +134,52 @@ export default function AuthCard({ onVerified }) {
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [devOtpShown, setDevOtpShown] = useState(null);
 
-  // countdown and resend
-  const DEFAULT_OTP_TTL_SECONDS = 10 * 60; // fallback: 10 minutes
-  const RESEND_COOLDOWN_SECONDS = 10; // allow quick resend after 10s
-  const [ttlSeconds, setTtlSeconds] = useState(0); // seconds remaining to expiry
+  // timers
+  const DEFAULT_OTP_TTL_SECONDS = 10 * 60;
+  const RESEND_COOLDOWN_SECONDS = 10;
+  const [ttlSeconds, setTtlSeconds] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const timerRef = useRef(null);
-  const cooldownRef = useRef(null);
 
-  // compute if we can resend
   const canResend = useMemo(() => resendCooldown <= 0, [resendCooldown]);
 
+  // ✅ FIXED: Standard ESLint-compliant timer logic
   useEffect(() => {
-    // tick timer every 1s when ttlSeconds > 0
+    let interval = null;
     if (ttlSeconds > 0) {
-      timerRef.current = setInterval(() => {
-        setTtlSeconds(t => {
-          if (t <= 1) {
-            clearInterval(timerRef.current);
-            return 0;
-          }
-          return t - 1;
-        });
+      interval = setInterval(() => {
+        setTtlSeconds((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
-    return () => clearInterval(timerRef.current);
+    return () => clearInterval(interval);
   }, [ttlSeconds]);
 
+  // ✅ FIXED: Standard ESLint-compliant timer logic
   useEffect(() => {
+    let interval = null;
     if (resendCooldown > 0) {
-      cooldownRef.current = setInterval(() => {
-        setResendCooldown(c => {
-          if (c <= 1) {
-            clearInterval(cooldownRef.current);
-            return 0;
-          }
-          return c - 1;
-        });
+      interval = setInterval(() => {
+        setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
     }
-    return () => clearInterval(cooldownRef.current);
+    return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  // helper: start timers when otp is sent
-  const startTimers = (ttl = DEFAULT_OTP_TTL_SECONDS) => {
+  const startTimers = useCallback((ttl = DEFAULT_OTP_TTL_SECONDS) => {
     setTtlSeconds(ttl);
     setResendCooldown(RESEND_COOLDOWN_SECONDS);
-  };
+  }, [DEFAULT_OTP_TTL_SECONDS]);
 
-  // validation
   const isEmailValid = useMemo(() => {
     if (!email) return false;
-    // simple RFC-ish check
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }, [email]);
 
   const isOtpValid = useMemo(() => {
-    // require exactly 6 digits (since placeholder says 6-digit)
     return /^\d{6}$/.test(otp);
   }, [otp]);
 
-  // send OTP
-  const handleSendOtp = async () => {
-    // client-side validation -> show under-field error (no toast)
+  const handleSendOtp = useCallback(async () => {
     if (!email) {
       setEmailError("Email is required");
       return;
@@ -230,7 +189,6 @@ export default function AuthCard({ onVerified }) {
       return;
     }
 
-    // clear previous errors
     setEmailError("");
     try {
       setSending(true);
@@ -238,17 +196,13 @@ export default function AuthCard({ onVerified }) {
 
       if (res.data && res.data.ok) {
         setOtpId(res.data.otpId || "");
-        setDevOtpShown(res.data.otp || null);
-
-        // try to parse TTL if server returns it (non-breaking)
         const ttlFromServer = res.data.otpTtlSeconds || res.data.otpTTLSeconds || res.data.ttlSeconds || null;
         const ttl = typeof ttlFromServer === "number" ? ttlFromServer : DEFAULT_OTP_TTL_SECONDS;
         startTimers(ttl);
 
         setStep(1);
-        toast.success("OTP sent — check your email (or see dev OTP while testing)");
+        toast.success("OTP sent — check your email");
       } else {
-        // server-side message: show as toast (this is server failure, keep as toast)
         toast.error(res.data?.message || "Failed to send OTP");
       }
     } catch (err) {
@@ -257,11 +211,9 @@ export default function AuthCard({ onVerified }) {
     } finally {
       setSending(false);
     }
-  };
+  }, [email, name, isEmailValid, DEFAULT_OTP_TTL_SECONDS, startTimers]);
 
-  // verify OTP
-  const handleVerifyOtp = async () => {
-    // client-side OTP validation -> show under-field error
+  const handleVerifyOtp = useCallback(async () => {
     if (!otp) {
       setOtpError("Enter the OTP");
       return;
@@ -271,33 +223,25 @@ export default function AuthCard({ onVerified }) {
       return;
     }
 
-    // clear client error
     setOtpError("");
     try {
       setVerifying(true);
       const res = await api.post("/auth/verify-otp", { otp, otpId, name, email });
 
       if (res.data && res.data.ok) {
-        // refresh client user state
         try {
           await fetchMe();
-        } catch (e) {
-          // ignore
-        }
+        } catch (e) { /* ignore */ }
 
         toast.success("Verified. Logged in.");
-        onVerified && onVerified(res.data.user || null);
-
-        // redirect to profile page (so user can see progress)
+        if (onVerified) onVerified(res.data.user || null);
         navigate("/profile");
       } else {
-        // server rejected OTP — show as field error rather than toast to match request
         const serverMsg = res.data?.message || "Invalid OTP";
         setOtpError(serverMsg);
       }
     } catch (err) {
       console.error("verify-otp error", err);
-      // if server returned message, show under field; else toast
       const serverMsg = err?.response?.data?.message;
       if (serverMsg) {
         setOtpError(serverMsg);
@@ -307,10 +251,9 @@ export default function AuthCard({ onVerified }) {
     } finally {
       setVerifying(false);
     }
-  };
+  }, [otp, isOtpValid, otpId, name, email, fetchMe, onVerified, navigate]);
 
-  // resend
-  const handleResend = async () => {
+  const handleResend = useCallback(async () => {
     if (!canResend) return;
     setOtp("");
     setOtpError("");
@@ -319,7 +262,6 @@ export default function AuthCard({ onVerified }) {
       const res = await api.post("/auth/send-otp", { email, name });
       if (res.data && res.data.ok) {
         setOtpId(res.data.otpId || "");
-        setDevOtpShown(res.data.otp || null);
         const ttlFromServer = res.data.otpTtlSeconds || res.data.otpTTLSeconds || res.data.ttlSeconds || null;
         const ttl = typeof ttlFromServer === "number" ? ttlFromServer : DEFAULT_OTP_TTL_SECONDS;
         startTimers(ttl);
@@ -333,11 +275,10 @@ export default function AuthCard({ onVerified }) {
     } finally {
       setSending(false);
     }
-  };
+  }, [canResend, email, name, DEFAULT_OTP_TTL_SECONDS, startTimers]);
 
   const timerDisplay = useMemo(() => formatSeconds(ttlSeconds), [ttlSeconds]);
 
-  // handlers to clear per-field errors on typing
   const onEmailChange = (e) => {
     setEmail(e.target.value);
     if (emailError) setEmailError("");
@@ -448,7 +389,6 @@ export default function AuthCard({ onVerified }) {
                   Back
                 </button>
 
-                {/* Improved Resend button (replace the PrimaryButton above with this) */}
                 <button
                   onClick={handleResend}
                   disabled={!canResend || sending}
@@ -512,29 +452,17 @@ export default function AuthCard({ onVerified }) {
                       {sending ? "Sending..." : (canResend ? "Resend" : `Resend in ${formatSeconds(resendCooldown)}`)}
                     </span>
                   </div>
-
-                  <style>{`
-                    @keyframes spin {
-                      0% { transform: rotate(0deg); }
-                      100% { transform: rotate(360deg); }
-                    }
-                  `}</style>
                 </button>
               </div>
             </Row>
-
-            {/*devOtpShown && (
-              <Small style={{ marginTop: 12 }}>
-                <strong>Dev OTP (testing only):</strong> {devOtpShown}
-              </Small>
-            )*/}
-
             <Small style={{ marginTop: 8 }}>
-              Didn’t get it? Check spam or click Resend .
+              Didn’t get it? Check spam or click Resend.
             </Small>
           </>
         )}
       </Card>
     </>
   );
-}
+};
+
+export default memo(AuthCard);

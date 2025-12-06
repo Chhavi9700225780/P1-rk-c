@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RiMoonLine, RiSunLine } from "react-icons/ri";
 import styled from "styled-components";
-import { useGlobalContext } from '../Context/Context';
+import { useGlobalContext } from '../../Context/Context';
 
 const Toggler = () => {
 const {isdarkMode, toggleTheme} = useGlobalContext();

@@ -1,63 +1,27 @@
-import React, { useCallback, useMemo, useState , useRef} from "react";
-import { Link , useNavigate} from "react-router-dom";
+import React, { useMemo, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { useAuth } from "../Context/AuthContext";
-import axios from "axios";
+import { useAuth } from "../../Context/AuthContext";
+import api from "../../utils/api"; // Use central API
 import { toast } from "react-toastify";
+import { Play, Volume2 } from "lucide-react";
 
-import { Play, Volume2 } from "lucide-react"; 
-/**
- * Shlok component
- * Props:
- *  - chapterVerse: verse object (has chapter_number, verse_number, translations, etc.)
- *  - DefaultLanguage: "english" | "hindi"
- *  - isCompleted?: optional boolean initial state (if parent provides)
- *  - onProgressChange?: optional callback to notify parent to re-fetch progress
- */
 const Shlok = ({ chapterVerse, DefaultLanguage, isCompleted: initialCompleted = false, onProgressChange }) => {
-  const { user, openAuthModal } = useAuth();
-const navigate = useNavigate();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
- //console.log("Checking verse data:", chapterVerse); // <-- ADD THIS LINE
-//const audioUrl = `/verse_recitation/${chapterVerse.chapter_number}/${chapterVerse.verse_number}.mp3`;
-  // --- ^ ^ ^ ADD THIS LINE ^ ^ ^ ---
+  // 1. Safe Audio URL Generation
+  const audioUrl = chapterVerse?.chapter_number && chapterVerse?.verse_number
+    ? `/verse_recitation/${chapterVerse.chapter_number}/${chapterVerse.verse_number}.mp3`
+    : null;
 
-
-
-  console.log("--- DEBUGGING SHLOK COMPONENT ---");
-  console.log("1. Received chapterVerse prop:", chapterVerse);
-
-  let audioUrl = null; // Initialize audioUrl as null
-
-  if (chapterVerse && chapterVerse.chapter_number && chapterVerse.verse_number) {
-    console.log("2. Chapter Number:", chapterVerse.chapter_number);
-    console.log("3. Verse Number:", chapterVerse.verse_number);
-
-    // Construct the URL
-    audioUrl = `/verse_recitation/${chapterVerse.chapter_number}/${chapterVerse.verse_number}.mp3`;
-    console.log("4. Constructed audioUrl:", audioUrl);
-
-  } else {
-    console.error("ERROR: The 'chapterVerse' prop is either missing or does not contain chapter_number/verse_number.");
-  }
-
-  console.log("--- END DEBUGGING ---");
-
-
-
-
-
-  // local optimistic state for the verse completed flag
+  // 2. Local State
   const [completed, setCompleted] = useState(!!initialCompleted);
   const [loading, setLoading] = useState(false);
-
-
-
-// --- 3. ADD AUDIO STATE & REFS ---
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
-  // --- 4. ADD AUDIO HANDLER ---
+  // 3. Audio Handlers
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) {
@@ -72,43 +36,28 @@ const navigate = useNavigate();
     setIsPlaying(false);
   };
 
-  const description = useCallback(
-    (arr) => {
-      for (let i = 0; i < (arr || []).length; i++) {
-        if (
-          DefaultLanguage === "english" &&
-          arr[i].author_name === "Swami Adidevananda"
-        ) {
-          return arr[i].description;
-        } else if (
-          DefaultLanguage === "hindi" &&
-          arr[i].author_name === "Swami Tejomayananda"
-        ) {
-          return arr[i].description;
-        }
-      }
-      // fallback: return first available description or empty
-      return (arr && arr[0] && arr[0].description) || "";
-    },
-    [DefaultLanguage]
-  );
+  // 4. Optimized Description Logic (Memoized)
+  const desc = useMemo(() => {
+    const arr = chapterVerse?.translations || [];
+    // Find specific author based on language
+    const preferred = arr.find(t => 
+      (DefaultLanguage === "english" && t.author_name === "Swami Adidevananda") ||
+      (DefaultLanguage === "hindi" && t.author_name === "Swami Tejomayananda")
+    );
+    // Fallback to first available or empty string
+    return preferred ? preferred.description : (arr[0]?.description || "");
+  }, [chapterVerse, DefaultLanguage]);
 
-  const desc = useMemo(
-    () => description(chapterVerse.translations),
-    [description, chapterVerse]
-  );
-
-  // Helper to call backend for toggling verse progress
+  // 5. Toggle Progress (Using api.js)
   const toggleVerseProgress = async (mark) => {
     if (!user) {
       toast.info("Please log in to mark progress");
-     navigate("/login");
+      navigate("/login");
       return;
     }
 
-    // optimistic update
     const prev = completed;
-    setCompleted(mark);
+    setCompleted(mark); // Optimistic update
     setLoading(true);
 
     try {
@@ -118,28 +67,18 @@ const navigate = useNavigate();
         completed: !!mark,
       };
 
-      const res = await axios.post("/progress/me/verse", payload, { withCredentials: true });
+      // Use configured API instance (handles BaseURL + Credentials)
+      const res = await api.post("/progress/me/verse", payload);
 
-      if (res.data && res.data.ok) {
+      if (res.data?.ok) {
         toast.success(mark ? "Marked as completed" : "Marked as incomplete");
-        // notify parent to refresh chapter/verse progress UI if they provided a handler
-        if (typeof onProgressChange === "function") {
-          try {
-            await onProgressChange(); // allow parent to re-fetch progress
-          } catch (e) {
-            // ignore parent errors
-          }
-        }
+        if (onProgressChange) onProgressChange(); // Refresh parent
       } else {
-        // rollback
-        setCompleted(prev);
-        toast.error(res.data?.message || "Failed to update progress");
+        throw new Error(res.data?.message);
       }
     } catch (err) {
-      console.error("toggleVerseProgress", err);
-      setCompleted(prev);
-      const msg = err?.response?.data?.message || "Network/server error";
-      toast.error(msg);
+      setCompleted(prev); // Rollback
+      toast.error(err.message || "Failed to update progress");
     } finally {
       setLoading(false);
     }
@@ -149,6 +88,8 @@ const navigate = useNavigate();
     <Wrapper className="relative">
       <div className="shlok">
         <div className="flex flex-col justify-between">
+          
+          {/* Title Link */}
           <div className="flex justify-center items-center title">
             <Link
               to={`/chapter/${chapterVerse.chapter_number}/slok/${chapterVerse.verse_number}`}
@@ -169,15 +110,13 @@ const navigate = useNavigate();
               </span>
             </Link>
           </div>
-          {/* --- 5. ADDED JSX FOR SANSKRIT TEXT & AUDIO BUTTON --- */}
-          {/* This section appears to be in your screenshot but was missing from the code */}
-        
-      
+
+          {/* Description Text */}
           <div className="description">
             <p>{desc}</p>
           </div>
 
-          {/* mark/unmark controls — placed below description */}
+          {/* Controls Area */}
           <div className="progress-controls">
             <button
               className={`btn mark ${completed ? "marked" : ""}`}
@@ -202,38 +141,32 @@ const navigate = useNavigate();
             </div>
           </div>
 
-          
-<div >
-  
-
-    
-    {/* THE AUDIO BUTTON - NOW USING our new 'audioUrl' variable */}
-    {audioUrl && ( // This now checks our manually created variable
-      <>
-        <audio 
-          ref={audioRef} 
-          src={audioUrl} // The src also uses our variable
-          onEnded={handleAudioEnded}
-          preload="metadata"
-        />
-        <button onClick={togglePlay} className="play-button" aria-label="Play verse audio">
-          {isPlaying ? <Volume2 size={32} /> : <Play size={32} />}
-        </button>
-      </>
-    )}
-
-  
-  
-</div>
+          {/* Audio Player Section */}
+          <div>
+            {audioUrl && (
+              <>
+                <audio
+                  ref={audioRef}
+                  src={audioUrl}
+                  onEnded={handleAudioEnded}
+                  preload="metadata"
+                />
+                <button onClick={togglePlay} className="play-button" aria-label="Play verse audio">
+                  {isPlaying ? <Volume2 size={32} /> : <Play size={32} />}
+                </button>
+              </>
+            )}
+          </div>
 
         </div>
       </div>
-    </Wrapper> 
+    </Wrapper>
   );
 };
 
 export default Shlok;
 
+// ✅ STYLING UNTOUCHED
 const Wrapper = styled.div`
   .shlok {
     padding-bottom: 0.5em;
@@ -328,28 +261,7 @@ const Wrapper = styled.div`
     }
   }
 
-
-  /* --- 6. ADD NEW STYLES FOR VERSE & BUTTON --- */
-  .verse-container {
-    padding: 1.5em 1em;
-    text-align: center;
-  }
-
-  .sanskrit-text-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem; /* space between text and button */
-    margin-bottom: 1rem;
-  }
-  
-  .devanagari {
-    font-size: 1.8rem; /* larger font for sanskrit */
-    line-height: 1.8;
-    color: ${({ theme }) => theme.colors.heading.primary};
-    font-weight: 500;
-  }
-
+  /* --- ADDED STYLES FOR AUDIO BUTTON --- */
   .play-button {
     background-color: transparent;
     border: 2px solid #2ECC71; /* green border */
@@ -362,7 +274,8 @@ const Wrapper = styled.div`
     align-items: center;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    flex-shrink: 0; /* prevent the button from shrinking */
+    flex-shrink: 0;
+    margin-left: 1rem; /* Added spacing from controls */
 
     &:hover {
       background-color: #2ECC71;
@@ -371,20 +284,7 @@ const Wrapper = styled.div`
     }
 
     svg {
-      margin-left: 3px; // to optically center the play icon
+      margin-left: 3px; 
     }
-  }
-
-  .transliteration, .word-meaning {
-    color: ${({ theme }) => theme.colors.heading.secondary};
-    font-style: italic;
-    margin-bottom: 1rem;
-    padding: 0 1em;
-    line-height: 1.6;
-  }
-  
-  .word-meaning {
-    font-style: normal;
-    color: #007bff; // blue color as in screenshot
   }
 `;

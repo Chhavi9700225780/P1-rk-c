@@ -1,26 +1,26 @@
-import React from "react";
+import React, { memo } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-const ChapterBox = ({ id, heading, meaning, desc }) => {
-  let navigate = useNavigate();
+// Optimization: Extract static default text outside the component
+const DEFAULT_DESC = "Dhṛtarāṣṭra said: O Sañjaya, after my sons and the sons of Pāṇḍu assembled in the place of pilgrimage at Kurukṣetra, desiring to fight, what did they do?";
 
-  const  scrollToTop = () => {
+const ChapterBox = ({ id, heading, meaning, desc }) => {
+  const navigate = useNavigate();
+
+  const handleChapterClick = () => {
+    // Combined navigation and scroll for better performance
+    navigate(`/chapter/${id}`);
     window.scrollTo({
       top: 0,
       left: 0,
       behavior: "smooth",
     });
-  }
-
-  const OpenChapter = (id) => {
-    navigate(`/chapter/${id}`);
-    scrollToTop();
   };
 
   return (
-    <Wrapper className="chapter" onClick={() => OpenChapter(id)} >
-      <div className="chapter-box"  >
+    <Wrapper className="chapter" onClick={handleChapterClick}>
+      <div className="chapter-box">
         <div className="h-full flex flex-col p-10 justify-center">
           <div className="title flex flex-col mb-3">
             <div className="heading mr-4">
@@ -34,15 +34,7 @@ const ChapterBox = ({ id, heading, meaning, desc }) => {
           </div>
           <div className="description">
             <p className="text-gray-500 line-clamp-3">
-              {desc ? (
-                <>{desc}</>
-              ) : (
-                <>
-                  Dhṛtarāṣṭra said: O Sañjaya, after my sons and the sons of
-                  Pāṇḍu assembled in the place of pilgrimage at Kurukṣetra,
-                  desiring to fight, what did they do?
-                </>
-              )}
+              {desc || DEFAULT_DESC}
             </p>
           </div>
           <div className="button font-semibold text-sm mt-4">SEE MORE</div>
@@ -52,7 +44,8 @@ const ChapterBox = ({ id, heading, meaning, desc }) => {
   );
 };
 
-export default ChapterBox;
+// Optimization: memo prevents re-renders if props haven't changed
+export default memo(ChapterBox);
 
 const Wrapper = styled.div`
   .chapter-box {

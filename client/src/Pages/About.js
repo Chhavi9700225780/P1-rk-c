@@ -1,82 +1,83 @@
-import React from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+
+// ✅ OPTIMIZATION: Move Variants OUTSIDE the component
+// This prevents React from re-creating these objects on every render.
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const slideUpVariants = {
+  hidden: { opacity: 0, y: 60 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.25, 0.25, 0.75],
+    },
+  },
+};
+
+const slideInLeftVariants = {
+  hidden: { opacity: 0, x: -60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.25, 0.25, 0.75],
+    },
+  },
+};
+
+const slideInRightVariants = {
+  hidden: { opacity: 0, x: 60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.25, 0.25, 0.75],
+    },
+  },
+};
+
+const scaleVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 1,
+      ease: [0.25, 0.25, 0.25, 0.75],
+    },
+  },
+};
+
+const textRevealVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
 
 const About = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const slideUpVariants = {
-    hidden: { opacity: 0, y: 60 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: [0.25, 0.25, 0.25, 0.75],
-      },
-    },
-  };
-
-  const slideInLeftVariants = {
-    hidden: { opacity: 0, x: -60 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.8,
-        ease: [0.25, 0.25, 0.25, 0.75],
-      },
-    },
-  };
-
-  const slideInRightVariants = {
-    hidden: { opacity: 0, x: 60 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.8,
-        ease: [0.25, 0.25, 0.25, 0.75],
-      },
-    },
-  };
-
-  const scaleVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 1,
-        ease: [0.25, 0.25, 0.25, 0.75],
-      },
-    },
-  };
-
-  const textRevealVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-  };
 
   return (
     <Wrapper
@@ -91,7 +92,6 @@ const About = () => {
         animate={isInView ? "visible" : "hidden"}
       >
         <div className="wrapper mt-36 md:mt-20 grid grid-rows-1 xl:grid-cols-2 xl:gap-4">
-          
           <motion.div
             className="img-content w-full h-full flex justify-center items-center"
             variants={slideInLeftVariants}
@@ -99,9 +99,9 @@ const About = () => {
             <motion.div
               className="content overflow-hidden"
               variants={scaleVariants}
-              whileHover={{ 
+              whileHover={{
                 scale: 1.02,
-                transition: { duration: 0.3 }
+                transition: { duration: 0.3 },
               }}
             >
               <motion.div
@@ -124,7 +124,6 @@ const About = () => {
                 >
                   About
                 </motion.span>{" "}
-                
               </h3>
             </motion.div>
 
@@ -142,29 +141,30 @@ const About = () => {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={isInView ? { opacity: 1 } : {}}
-                transition={{ 
-                  delay: 1.4, 
+                transition={{
+                  delay: 1.4,
                   duration: 1.2,
-                  ease: "easeOut"
+                  ease: "easeOut",
                 }}
               >
-                Bhagavad Gita, also known as the Gita - "The Song of The Lord" is
-                a practical guide to one's life that guides one to re-organise
-                their life, achieve inner peace and approach the Supreme Lord (the
-                Ultimate Reality). It is a 700-verse text in Sanskrit which
-                comprises chapters 23 through 40 in the Bhishma-Parva section of
-                the Mahabharata. The Bhagavad Gita is a dialogue between Arjuna, a
-                supernaturally gifted warrior and his guide and charioteer Lord
-                Krishna on the battlefield of Kurukshetra. As both armies stand
-                ready for the battle, the mighty warrior Arjuna, on observing the
-                warriors on both sides becomes overwhelmed with grief and
-                compassion due to the fear of losing his relatives and friends and
-                the consequent sins attributed to killing his own relatives. So,
-                he surrenders to Lord Krishna, seeking a solution. Thus, follows
-                the wisdom of the Bhagavad Gita. Over 18 chapters, Gita packs an
-                intense analysis of life, emotions and ambitions, discussion of
-                various types of yoga, including Jnana, Bhakti, Karma and Raja,
-                the difference between Self and the material body as well as the
+                Bhagavad Gita, also known as the Gita - "The Song of The Lord"
+                is a practical guide to one's life that guides one to
+                re-organise their life, achieve inner peace and approach the
+                Supreme Lord (the Ultimate Reality). It is a 700-verse text in
+                Sanskrit which comprises chapters 23 through 40 in the
+                Bhishma-Parva section of the Mahabharata. The Bhagavad Gita is a
+                dialogue between Arjuna, a supernaturally gifted warrior and his
+                guide and charioteer Lord Krishna on the battlefield of
+                Kurukshetra. As both armies stand ready for the battle, the
+                mighty warrior Arjuna, on observing the warriors on both sides
+                becomes overwhelmed with grief and compassion due to the fear of
+                losing his relatives and friends and the consequent sins
+                attributed to killing his own relatives. So, he surrenders to
+                Lord Krishna, seeking a solution. Thus, follows the wisdom of
+                the Bhagavad Gita. Over 18 chapters, Gita packs an intense
+                analysis of life, emotions and ambitions, discussion of various
+                types of yoga, including Jnana, Bhakti, Karma and Raja, the
+                difference between Self and the material body as well as the
                 revelation of the Ultimate Purpose of Life.
               </motion.p>
             </motion.div>
@@ -205,11 +205,12 @@ const About = () => {
 
 export default About;
 
+// ✅ STYLING UNTOUCHED
 const Wrapper = styled.section`
   width: 100vw;
   height: 100%;
   position: relative;
-  
+
   .custom-container {
     margin: 0 8rem;
     p {
@@ -254,11 +255,15 @@ const Wrapper = styled.section`
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
-      
+
       &:before {
         content: "";
         position: absolute;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.3) 0%,
+          rgba(0, 0, 0, 0.1) 100%
+        );
         inset: 0;
         z-index: 1;
       }
@@ -268,7 +273,7 @@ const Wrapper = styled.section`
       position: relative;
       width: auto;
       max-width: 750px;
-      
+
       p {
         font-size: 1rem;
         line-height: 1.8;
