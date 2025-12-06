@@ -10,7 +10,8 @@ import { fadeUp, staggerContainer } from "../utils/animations";
 // 1. OPTIMIZATION: Define API correctly.
 // This looks for the environment variable first. If not found, falls back to localhost.
 //const API = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-const API = 'http://localhost:5000';
+const API =  process.env.REACT_APP_RENDER_URL || process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL ;
+
 // 2. OPTIMIZATION: Move Variants OUTSIDE the component.
 // This prevents them from being re-created on every single keystroke.
 const formFieldVariants = {
