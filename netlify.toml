@@ -1,4 +1,0 @@
-[build]
-  base = "client"
-  command = "CI=false npm install && npm run build"
-  publish = "build"
