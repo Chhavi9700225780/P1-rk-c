@@ -2,27 +2,34 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL:"process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL",
-
-  //  process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL || process.env.REACT_APP_RENDER_URL ,
+  baseURL: "https://p1-rk-c2.onrender.com",
   withCredentials: true,
-   timeout: 120000, 
+  timeout: 10000, // Reduced from 120s to 10s. If it sleeps, we want to fail fast and retry.
 });
-async function requestWithRetry(config, retries = 3, delayMs = 2000) {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      return await api(config);
-    } catch (err) {
-      const isTimeout = err.code === "ECONNABORTED" || err.message?.includes("timeout");
-      const isNetwork = !err.response;
-      if (i === retries || (!isTimeout && !isNetwork)) throw err;
-      // exponential backoff
-      await new Promise((r) => setTimeout(r, delayMs * Math.pow(2, i)));
+
+// Add a Response Interceptor to handle retries automatically
+api.interceptors.response.use(
+  (response) => response, // Return successful responses directly
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check if we have retried already or if it's not a timeout/network error
+    if (
+      originalRequest._retry || 
+      (!error.message.includes("timeout") && error.response)
+    ) {
+      return Promise.reject(error);
     }
+
+    originalRequest._retry = true; // Mark as retried
+    
+    // Wait 2 seconds (Render takes about 30s-60s to wake up, so we might need a longer loop)
+    // But for a simple retry:
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    console.log("Retrying request due to timeout...");
+    return api(originalRequest); // Retry the request
   }
-}
+);
 
-export { api, requestWithRetry };
 export default api;
-
-

@@ -1,4 +1,5 @@
-import axios from "axios";
+
+import api from "../utils/api";
 import React, { useState } from "react";
 import styled from "styled-components";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,8 +10,8 @@ import { fadeUp, staggerContainer } from "../utils/animations";
 
 // 1. OPTIMIZATION: Define API correctly.
 // This looks for the environment variable first. If not found, falls back to localhost.
-//const API = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-const API =   process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL  ;
+//const API ='https://p1-rk-c2.onrender.com';
+//const API =   process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL  ;
 
 // 2. OPTIMIZATION: Move Variants OUTSIDE the component.
 // This prevents them from being re-created on every single keystroke.
@@ -111,7 +112,7 @@ const Contact = () => {
     }
 
     try {
-      const res = await axios.post(`${API}/contact/`, formData);
+      const res = await api.post(`/contact/`, formData);
 
       if (res.data && res.data.success === true) {
         toast.success("Thank You! Your Message has been sent sucessfully!", {

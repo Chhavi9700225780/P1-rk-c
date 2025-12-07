@@ -1,7 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import axios from "axios";
-
+import api from "../utils/api";
 import { toast } from "react-toastify";
 
 const AuthContext = createContext();
@@ -15,7 +14,7 @@ export function AuthProvider({ children }) {
   const fetchMe = useCallback(async () => {
     try {
       setLoadingMe(true);
-      const res = await axios.get("/auth/me", { withCredentials: true });
+      const res = await api.get("/auth/me");
       if (res.data && res.data.ok && res.data.user) {
         setUser(res.data.user);
       } else {
@@ -39,7 +38,7 @@ export function AuthProvider({ children }) {
   // logout
   const logout = async () => {
     try {
-      await axios.post("/auth/logout", {}, { withCredentials: true });
+      await api.post("/auth/logout");
     } catch (err) {
       console.warn("logout error", err && err.message);
     } finally {

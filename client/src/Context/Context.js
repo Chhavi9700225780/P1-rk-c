@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useReducer, useState } from "react";
 import reducer from "./Reducer";
-import axios from "axios";
-
+import api from "../utils/api";
 // Create a new context
 const AppContext = React.createContext();
 
 // Define the API URL
-//const API =  'http://localhost:5000';
-const API =   process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL  ;
+//const API =  'https://p1-rk-c2.onrender.com';
+//const API =   process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL  ;
 // Define the initial state of the application
 const initialState = {
   DefaultLanguage: "english",
@@ -49,7 +48,7 @@ const AppProvider = ({ children }) => {
 
     dispatch({ type: "SET_CHAPTERS_LOADING" });
     try {
-      const response = await axios.get(`${API}/chapters`);
+      const response = await api.get(`/chapters`);
       const data = response.data;
       dispatch({ type: "GET_CHAPTER", payload: data });
     } catch (error) {
@@ -61,7 +60,7 @@ const AppProvider = ({ children }) => {
   const fetchRandomSlok = async () => {
     dispatch({ type: "SET_LOADING" });
     try {
-      const response = await axios.get(`${API}/slok`);
+      const response = await api.get(`/slok`);
       const data = response.data;
       dispatch({ type: "GET_RANDOM_SLOK", payload: data });
     } catch (error) {
@@ -83,7 +82,7 @@ const AppProvider = ({ children }) => {
 
     dispatch({ type: "SET_SINGLE_LOADING" });
     try {
-      const response = await axios.get(`${API}/chapter/${chapterId}`);
+      const response = await api.get(`/chapter/${chapterId}`);
       const data = response.data;
       dispatch({ type: "GET_SINGLE_CHAPTER", payload: data });
     } catch (error) {
@@ -107,7 +106,7 @@ const AppProvider = ({ children }) => {
 
     dispatch({ type: "SET_VERSES_LOADING" });
     try {
-      const response = await axios.get(`${API}/chapter/${url}`);
+      const response = await api.get(`/chapter/${url}`);
       const data = response.data;
       dispatch({ type: "GET_ALL_VERSES", payload: data });
     } catch (error) {
@@ -119,7 +118,7 @@ const AppProvider = ({ children }) => {
   const GetVerse = async (url) => {
     dispatch({ type: "SET_VERSE_LOADING" });
     try {
-      const response = await axios.get(`${API}/chapter/${url}`);
+      const response = await api.get(`/chapter/${url}`);
       const data = response.data;
       dispatch({ type: "GET_VERSE", payload: data });
     } catch (error) {
