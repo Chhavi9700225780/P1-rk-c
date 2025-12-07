@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://p1-rk-c2.onrender.com", 
+  baseURL: "https://p1-rk-c.vercel.app", 
   withCredentials: true,
   // ✅ CHANGE THIS: 10000 -> 70000 (70 seconds)
-  timeout: 70000, 
+  timeout: 20000, 
 });
 
 // Add this retry logic to handle wake-ups automatically

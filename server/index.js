@@ -61,3 +61,5 @@ app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 app.listen(PORT, () => {
   console.log(`Server started successfully at ${PORT}`);
 });
+
+module.exports = app;
