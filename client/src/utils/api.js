@@ -1,34 +1,26 @@
-// src/api.js
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://p1-rk-c2.onrender.com",
+  baseURL: "https://p1-rk-c2.onrender.com", 
   withCredentials: true,
-  timeout: 10000, // Reduced from 120s to 10s. If it sleeps, we want to fail fast and retry.
+  // ✅ CHANGE THIS: 10000 -> 70000 (70 seconds)
+  timeout: 70000, 
 });
 
-// Add a Response Interceptor to handle retries automatically
+// Add this retry logic to handle wake-ups automatically
 api.interceptors.response.use(
-  (response) => response, // Return successful responses directly
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if we have retried already or if it's not a timeout/network error
-    if (
-      originalRequest._retry || 
-      (!error.message.includes("timeout") && error.response)
-    ) {
-      return Promise.reject(error);
+    // If it times out, try one more time automatically
+    if (error.code === 'ECONNABORTED' && !originalRequest._retry) {
+      console.log("Server sleeping? Retrying request...");
+      originalRequest._retry = true;
+      originalRequest.timeout = 90000; // 90 seconds for retry
+      return api(originalRequest);
     }
-
-    originalRequest._retry = true; // Mark as retried
-    
-    // Wait 2 seconds (Render takes about 30s-60s to wake up, so we might need a longer loop)
-    // But for a simple retry:
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    console.log("Retrying request due to timeout...");
-    return api(originalRequest); // Retry the request
+    return Promise.reject(error);
   }
 );
 
