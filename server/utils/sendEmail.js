@@ -1,61 +1,54 @@
 // server/utils/sendEmail.js
-/**
- * sendEmail(data)
- * data: {
- *   subject: string,
- *   email: string,      // recipient email (required)
- *   message: string,    // plain text body
- *   name?: string       // optional sender name or context
- * }
- *
- * Returns: { ok: true, info } on success or { ok: false, error } on failure
- *
- * Note: For Gmail SMTP use an App Password (recommended) and set in .env:
- *   SMPT_EMAIL=your-email@gmail.com
- *   PASSWORD=your-app-password
- *
- * The function uses async/await and does not throw — it returns status object.
- */
-
 const nodeMailer = require("nodemailer");
 require("dotenv").config();
+
+// OPTIMIZATION: Create the transporter OUTSIDE the function.
+// This prevents creating a new login connection for every single email (which Google hates).
+const transporter = nodeMailer.createTransport({
+  host: "smtp.gmail.com", // Explicit host is safer than service: 'gmail'
+  port: 465, // 465 (SSL) is fine. If it hangs, switch to 587 (TLS).
+  secure: true, 
+  auth: {
+    user: process.env.SMPT_EMAIL, // Note: You have a typo in your .env (SMPT vs SMTP). I kept it to match your env.
+    pass: process.env.PASSWORD,
+  },
+});
 
 async function sendEmail(data = {}) {
   const { subject = "No subject", email, message = "", name = "" } = data || {};
 
   if (!email) {
-    const err = "sendEmail: recipient email (data.email) is required";
-    console.warn(err);
-    return { ok: false, error: err };
+    return { ok: false, error: "Recipient email is required" };
   }
 
-  // Create transporter (recreate on each call to pick up env changes).
-  // For Gmail, secure: true and port 465 is typical with app passwords.
-  const transporter = nodeMailer.createTransport({
-    secure: true,
-    port: 465,
-    service: "gmail",
-    auth: {
-      user: process.env.SMPT_EMAIL,
-      pass: process.env.PASSWORD,
-    },
-  });
-
   const mailOptions = {
-    from: "no-reply@example.com",
+    // FIX: Use your actual email or a formatted name
+    from: `Gita App <${process.env.SMPT_EMAIL}>`, 
     to: email,
     subject,
-    text: `${message}`,
-    html: `<p>${message}</p>`,
+    text: message,
+    html: `<div style="font-family: sans-serif; padding: 20px;">
+            <h3>Hello ${name || 'User'},</h3>
+            <p>${message.replace(/\n/g, "<br>")}</p>
+            <hr />
+            <p style="font-size: 12px; color: #666;">Sent via Gita App</p>
+           </div>`,
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    // info contains provider response (messageId, accepted, etc.)
+    // SAFEFGUARD: Race the email against a 10-second timer
+    // This prevents the "Infinite Loading Spinner" on the frontend
+    const info = await Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Email server timed out (10s)")), 10000)
+      )
+    ]);
+
     return { ok: true, info };
   } catch (error) {
-    console.error("sendEmail error:", error && (error.message || error));
-    return { ok: false, error: error && (error.message || error) };
+    console.error("sendEmail error:", error.message);
+    return { ok: false, error: error.message };
   }
 }
 

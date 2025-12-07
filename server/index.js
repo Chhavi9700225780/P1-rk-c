@@ -12,6 +12,8 @@ const japaCount = require('./routes/japaCountRoutes');
 const gitaRoutes = require('./routes/gitaRoutes'); 
 require("dotenv").config();
 const PORT = process.env.PORT || 4000;
+app.set("trust proxy", 1);
+
 
 // --- CORS CONFIGURATION ---
 const allowedOrigins = [

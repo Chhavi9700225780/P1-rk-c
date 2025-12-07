@@ -1,71 +1,50 @@
-// Import the sendEmail utility function from the specified path
 const sendEmail = require("../utils/sendEmail");
 
-// Define an asynchronous function to handle the contact form submission
 const contact = async (req, res) => {
   try {
-     // Extract the name, email, and message from the request body
     const { name, email, message } = req.body;
-    
-    // Create an object to hold the extracted data
-    const data = {
+
+    // --- 1. Email to the USER (Acknowledgment) ---
+    const userEmailData = {
       name: name,
-      email: email,
-      message: message,
-      subject: "Query Received",
+      email: email, // Send to the user
+      subject: "Query Received - Gita App",
+      message: `Hi ${name},\n\nThanks for raising a query. I have received it and will contact you within 24-48 Hours.\n\nRegards,\nChhavi`
     };
 
-    // Log the extracted data for debugging purposes
-    // console.log(data);
+    const userEmailRes = await sendEmail(userEmailData);
 
-   // Configure options for sending confirmation emails to the sender and website owner
-    let options = {
-    data : {
-     name: data.name,
-      email: data.email,
-      message: data.message
-    },
-
-      subject: "Query Received",
-      message_Content:
-        "<p> Hi " +
-        data.name +
-        ",<br />Thanks for raising query. I have Received your query. I will contact to you as soon as possible within 24-48 Hours.  <br /> <b>Regards</b> <br> Chhavi </p> ",
-    };
-
-     //   sending the confirmation to sender person
-    const emailres=await sendEmail(data);
-    if(emailres=="success")
-    {
-      return res.status(200).json({success:'true',msg:"hi"});
+    // If sending to user failed, stop here and tell them
+    if (!userEmailRes.ok) {
+      console.error("Failed to send user email:", userEmailRes.error);
+      return res.status(500).json({ success: false, message: "Could not send email. Please try again." });
     }
 
-    // Configure options for sending notification email to the website owner
-   // options = {
-  //    name: data.name,
-  //    email: SMPT_MAIL,
-  //    subject: "New Query from Bhagavad Gita Website",
-  //    message_Content: `<p> Chhavi, <br> You have received a new query from your Bhagavad Gita Website. The Sender Details are: <br> <b>Name : </b>${data.name} <br> <b>Email : </b> ${data.email} <br> <b>Message : </b> ${data.message} </p>`,
-  //  };
-    
-     // Send the notification email to the website owner
-   // await sendEmail(options);
+    // --- 2. Email to ADMIN (You/Chhavi) ---
+    // This ensures you actually get the message content!
+    const adminEmailData = {
+      email: process.env.SMPT_EMAIL, // Your email from .env
+      subject: `New Query from ${name}`,
+      message: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    };
 
-    // Respond with a success status and message
-    res.status(201).json({
+    // We don't strictly need to wait for this or fail if this fails, 
+    // but it's good practice to await it.
+    await sendEmail(adminEmailData);
+
+    // --- 3. Success Response ---
+    return res.status(200).json({
       success: true,
-      message: "message sent to both parties",
+      message: "Message sent successfully to both parties",
     });
+
   } catch (error) {
-    // If an error occurs, respond with an error status and message
-    res.status(404).json({
+    console.error("Contact Controller Error:", error);
+    res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal Server Error",
     });
   }
 };
 
-// Export the contact function for use in other parts of the application
-module.exports = {
-  contact,
-};
+module.exports = { contact };
