@@ -65,7 +65,7 @@ const ChakraLogo = React.memo(() => (
   </motion.div>
 ));
 
-export default function GitaEmbedPage({ src = "https://cmybgitagpt.netlify.app/?embed=true" }) {
+export default function GitaEmbedPage({ src = "https://my-gg-ffn6.vercel.app/?embed=true" }) {
   const [loaded, setLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blocked, setBlocked] = useState(false);
