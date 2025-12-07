@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://p1-rk-c.vercel.app", 
+  baseURL: "/api", 
   withCredentials: true,
-  // ✅ CHANGE THIS: 10000 -> 70000 (70 seconds)
   timeout: 20000, 
 });
 
