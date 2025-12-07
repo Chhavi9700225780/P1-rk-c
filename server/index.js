@@ -19,7 +19,7 @@ app.set("trust proxy", 1);
 const allowedOrigins = [
   'https://p1-rk-2.netlify.app',
   'http://localhost:3000',
-  'http://18.208.218.198',
+  'https://p1-rk-c-onry.vercel.app/',
   'http://localhost:5173'
 ];
 
