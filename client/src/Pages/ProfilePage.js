@@ -208,11 +208,12 @@ export default function ProfilePage() {
     }
   };
 
-  useEffect(() => {
-    loadSummary();
-    fetchMe().catch(() => {});
-    setNameDraft(user?.displayName || "");
-  }, []);
+  
+useEffect(() => {
+  loadSummary();
+  fetchMe().catch(() => {});
+}, [fetchMe]);
+
 
   useEffect(() => {
     setNameDraft(user?.displayName || "");

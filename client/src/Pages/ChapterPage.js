@@ -33,7 +33,7 @@ const ChapterPage = () => {
   
   // Local State for User Progress only
   const [progressMap, setProgressMap] = useState({});
-  const [loadingChapterToggle, setLoadingChapterToggle] = useState(false);
+  //const [loadingChapterToggle, setLoadingChapterToggle] = useState(false);
 
   // Animation Preferences
   const reduceMotion = useReducedMotion();
