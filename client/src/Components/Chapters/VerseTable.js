@@ -5,7 +5,7 @@ import { useGlobalContext } from "../../Context/Context";
 import ChapterBtn from "../../Styles/ChapterBtn";
 import Loading from "../Common/Loading";
 
-const VerseTable = ({ singleChapter, progressMap = {}, onToggleChapterComplete }) => {
+const VerseTable = ({ singleChapter, progressMap = {}, loadingChapterToggle = false, onToggleChapterComplete }) => {
   const { id, sh } = useParams();
   const { chapterVerses, isVersesLoading, DefaultLanguage } = useGlobalContext();
 
@@ -72,14 +72,19 @@ const VerseTable = ({ singleChapter, progressMap = {}, onToggleChapterComplete }
           {/* Chapter-level complete toggle */}
           {onToggleChapterComplete && (
             <div className="chapter-complete">
-              <button
-                onClick={handleToggle}
-                className={`chapter-complete-btn ${isChapterCompleted ? "done" : ""}`}
-              >
-                {isChapterCompleted
-                  ? "Unmark Chapter"
-                  : "Mark Chapter Complete"}
-              </button>
+             
+<button
+  onClick={handleToggle}
+  disabled={loadingChapterToggle}
+  className={`chapter-complete-btn ${isChapterCompleted ? "done" : ""}`}
+>
+  {loadingChapterToggle
+    ? "Updating..."
+    : isChapterCompleted
+    ? "Unmark Chapter"
+    : "Mark Chapter Complete"}
+</button>
+
             </div>
           )}
         </div>
