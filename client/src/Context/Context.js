@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer, useState } from "react";
+import React, { useContext, useEffect, useReducer, useState , useCallback} from "react";
 import reducer from "./Reducer";
 import api from "../utils/api";
 // Create a new context
@@ -38,35 +38,40 @@ const AppProvider = ({ children }) => {
   };
 
   // --- 1. OPTIMIZED: Get all chapters ---
-  const fetchChapters = async () => {
-    // Optimization: If we already have chapters, don't fetch again.
-    if (state.chapter && state.chapter.length > 0) {
-      // Ensure loading is set to false just in case
-      if (state.isChapterLoading) dispatch({ type: "GET_CHAPTER", payload: state.chapter });
-      return; 
+ const fetchChapters = useCallback(async () => {
+  if (state.chapter && state.chapter.length > 0) {
+    if (state.isChapterLoading) {
+      dispatch({ type: "GET_CHAPTER", payload: state.chapter });
     }
+    return;
+  }
 
-    dispatch({ type: "SET_CHAPTERS_LOADING" });
-    try {
-      const response = await api.get(`/chapters`);
-      const data = response.data;
-      dispatch({ type: "GET_CHAPTER", payload: data });
-    } catch (error) {
-      dispatch({ type: "API_ERROR" });
-    }
-  };
+  dispatch({ type: "SET_CHAPTERS_LOADING" });
+
+  try {
+    const response = await api.get("/chapters");
+    dispatch({ type: "GET_CHAPTER", payload: response.data });
+  } catch (error) {
+    console.error("Error fetching chapters:", error);
+    dispatch({ type: "API_ERROR" });
+  }
+}, [state.chapter, state.isChapterLoading]);
 
   // Get random slok (Verse of the day) - We usually want this to refresh, so we keep it.
-  const fetchRandomSlok = async () => {
-    dispatch({ type: "SET_LOADING" });
-    try {
-      const response = await api.get(`/slok`);
-      const data = response.data;
-      dispatch({ type: "GET_RANDOM_SLOK", payload: data });
-    } catch (error) {
-      dispatch({ type: "API_ERROR" });
-    }
-  };
+ const fetchRandomSlok = useCallback(async () => {
+  dispatch({ type: "SET_LOADING" });
+
+  try {
+    const response = await api.get("/slok");
+    dispatch({
+      type: "GET_RANDOM_SLOK",
+      payload: response.data,
+    });
+  } catch (error) {
+    console.error("Error fetching random slok:", error);
+    dispatch({ type: "API_ERROR" });
+  }
+}, []);
 
   // --- 2. OPTIMIZED: Get Single Chapter ---
   const GetSingleChapter = async (chapterId) => {
@@ -133,11 +138,11 @@ const AppProvider = ({ children }) => {
 
   useEffect(() => {
     fetchChapters();
-  }, []);
+  }, [fetchChapters]);
 
   useEffect(() => {
     fetchRandomSlok();
-  }, []);
+  }, [fetchRandomSlok]);
 
   return (
     <AppContext.Provider

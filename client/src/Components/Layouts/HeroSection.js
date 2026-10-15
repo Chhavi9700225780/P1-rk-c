@@ -7,14 +7,14 @@ import { motion, useReducedMotion } from "framer-motion";
 import { fadeUp, staggerContainer } from "../../utils/animations";
 
 // 1. Text Variant (Slides up - keep this for text)
-const itemVariants = {
+/*const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
     y: 0,
     transition: { duration: 0.6, ease: "easeOut" }
   }
-};
+};*/
 
 // 2. New Background Variant (Only fades opacity, NO movement)
 const bgImageVariant = {
